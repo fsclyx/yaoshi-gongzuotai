@@ -945,8 +945,12 @@ async function decState(pass,b){const u=unb64(b);const key=await deriveKey(pass,
  const pt=await crypto.subtle.decrypt({name:"AES-GCM",iv:u.slice(16,28)},key,u.slice(28));
  return JSON.parse(new TextDecoder().decode(pt));}
 function cloudPath(){return "backups/center-"+(state.settings.centerNo||"00")+".json.enc";}
-function cloudApiUrl(){return "https://api.github.com/repos/"+cloud.repo+"/contents/"+cloudPath();}
-function cloudHdr(){return {"Authorization":"Bearer "+cloud.token,"Accept":"application/vnd.github+json"};}
+function cloudApiUrl(){return "https://gitee.com/api/v5/repos/"+cloud.repo+"/contents/"+cloudPath();}
+async function giteeGet(){
+ let r=await fetch(cloudApiUrl(),{headers:{"Authorization":"token "+cloud.token}});
+ if(r.status===401){ r=await fetch(cloudApiUrl()+"?access_token="+encodeURIComponent(cloud.token)); }
+ return r;
+}
 let cloudTimer=null, cloudBusy=false;
 function scheduleCloud(){ if(!cloud.auto||!cloud.repo||!cloud.token||!cloud.pass) return;
  clearTimeout(cloudTimer); cloudTimer=setTimeout(function(){cloudUpload(false);},15000);}
@@ -957,14 +961,14 @@ async function cloudUpload(manual){
  cloudBusy=true; setCloudMsg("上传中…");
  try{
    let sha=null;
-   const g=await fetch(cloudApiUrl(),{headers:cloudHdr()});
-   if(g.status===200){ sha=(await g.json()).sha; }
+   const g=await giteeGet();
+   if(g.status===200){ const gj=await g.json(); if(gj&&gj.sha) sha=gj.sha; }
    else if(g.status===401||g.status===403){ throw new Error("令牌无效或无权限("+g.status+")"); }
    else if(g.status!==404){ throw new Error("检查云端文件失败("+g.status+")"); }
    const content=await encState(cloud.pass);
-   const body={message:"encrypted auto-backup "+new Date().toLocaleString("zh-CN"),content:content};
+   const body={access_token:cloud.token, message:"encrypted auto-backup "+new Date().toLocaleString("zh-CN"), content:content};
    if(sha) body.sha=sha;
-   const r=await fetch(cloudApiUrl(),{method:"PUT",headers:cloudHdr(),body:JSON.stringify(body)});
+   const r=await fetch(cloudApiUrl(),{method:sha?"PUT":"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
    if(!r.ok) throw new Error("上传失败("+r.status+")");
    cloud.lastUp=new Date().toLocaleString("zh-CN"); cloud.lastMsg="成功"; saveCloud();
    setCloudMsg("最近上传："+cloud.lastUp+"（成功，已加密）"); if(manual)toast("云端加密备份成功");
@@ -978,7 +982,7 @@ async function cloudRestore(){
  if(!cloud.repo||!cloud.token||!cloud.pass){alert("请先完整填写云端配置");return;}
  if(!confirm("将用云端备份覆盖本机当前数据（本机现有 "+state.patients.length+" 名患者），确认？"))return;
  try{
-   const g=await fetch(cloudApiUrl(),{headers:cloudHdr()});
+   const g=await giteeGet();
    if(!g.ok) throw new Error("下载失败("+g.status+")");
    const j=await g.json();
    const obj=await decState(cloud.pass, String(j.content||"").replace(/\n/g,""));
@@ -1013,11 +1017,11 @@ function renderSettings(){
       <input type="date" id="s_push" value="${esc(s.pushStart)}"></div>
     <div class="row" style="margin-top:12px"><button class="btn" onclick="saveSettings()">保存设置</button></div>
   </div>
-  <div class="card"><h2>云端加密备份（自动上传 GitHub 私有仓库）</h2>
-    <div class="note"><b>隐私保护机制：</b>①数据先在本机用加密口令加密（AES-256-GCM），云端只保存密文，无口令任何人（包括仓库管理员）都无法读取；②仓库必须为<b>私有库</b>；③访问令牌与加密口令只保存在本机浏览器，不写入网页代码，也不包含在JSON备份和CSV导出中；④上传文件名仅含中心号。<b>加密口令由项目组统一设定并保管——口令遗失，云端备份将永久无法解密。</b></div>
+  <div class="card"><h2>云端加密备份（自动上传 Gitee 私有仓库）</h2>
+    <div class="note"><b>隐私保护机制：</b>①数据先在本机用加密口令加密（AES-256-GCM），云端只保存密文，无口令任何人（包括仓库管理员）都无法读取；②仓库必须为<b>私有库</b>；③访问令牌与加密口令只保存在本机浏览器，不写入网页代码，也不包含在JSON备份和CSV导出中；④上传文件名仅含中心号。<b>加密口令由项目组统一设定并保管——口令遗失，云端备份将永久无法解密。</b>注意：Gitee私人令牌对账号下所有仓库有效，请妥善分发保管，怀疑泄露立即在Gitee中删除重建。</div>
     <div class="grid g3">
-      <div><label class="f">数据仓库（用户名/仓库名，须为私有库）</label><input type="text" id="c_repo" value="${esc(cloud.repo)}" placeholder="如 fsclyx/yaoshi-data"></div>
-      <div><label class="f">访问令牌（Fine-grained PAT，仅限该库Contents读写）</label><input type="password" id="c_token" value="${esc(cloud.token)}" placeholder="github_pat_…"></div>
+      <div><label class="f">数据仓库（用户名/仓库名，须为私有库）</label><input type="text" id="c_repo" value="${esc(cloud.repo)}" placeholder="Gitee用户名/仓库名，如 xxx/yaoshi-data"></div>
+      <div><label class="f">Gitee私人令牌（勾选 projects 权限）</label><input type="password" id="c_token" value="${esc(cloud.token)}" placeholder="在 Gitee-设置-私人令牌 中生成"></div>
       <div><label class="f">加密口令（全项目统一，项目组下发）</label><input type="password" id="c_pass" value="${esc(cloud.pass)}"></div>
     </div>
     <div class="row" style="margin-top:8px">
