@@ -28,6 +28,7 @@ main{max-width:1080px;margin:18px auto;padding:0 14px 60px}
 label.f{display:block;font-size:13px;color:var(--muted);margin-bottom:3px}
 input[type=text],input[type=number],input[type=date],select,textarea{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:6px;font-size:15px;font-family:inherit;background:#fff}
 textarea{min-height:60px;resize:vertical}
+a.btn{text-decoration:none}
 .btn{display:inline-block;background:var(--blue);color:#fff;border:none;border-radius:7px;padding:9px 18px;font-size:15px;cursor:pointer;font-family:inherit}
 .btn:hover{background:var(--blue-d)}
 .btn.sec{background:#fff;color:var(--blue);border:1px solid var(--blue)}
@@ -453,6 +454,7 @@ function renderDash(){
       <button class="btn" onclick="go('enroll')">＋ 新增入组</button>
       <button class="btn sec" onclick="go('scripts')">打开话术库</button>
       <button class="btn sec" onclick="go('data')">导出数据</button>
+      <a class="btn sec" href="https://fsclyx.github.io/yaoshi-gongzuotai/%E8%8D%AF%E5%B8%88%E5%B7%A5%E4%BD%9C%E5%8F%B0%E4%BD%BF%E7%94%A8%E6%89%8B%E5%86%8C.docx" target="_blank">下载使用手册</a>
     </div>
     <p class="muted" style="margin-top:8px">流程：知情同意（A1）→ 电子量表（自动计分分层）→ 干预处方（B类话术）→ 邀请入群（A3）→ 1/3个月随访（D1/D2）。</p>
   </div>`;
@@ -953,7 +955,7 @@ function renderSettings(){
     <p class="muted" style="margin-top:8px">规划功能：①患者群提问→AI按话术库口径生成回复草稿→药师审核（含禁语校验）后发送；②随访通话要点→AI整理为CRF格式记录；③现用药清单→相互作用/重复用药初筛提示。启用前提：项目组确定合规的大模型服务、数据脱敏规则与审核流程。当前版本所有计分、分层、话术匹配均为确定性规则，符合研究标准化要求，不依赖AI。</p>
   </div>
   <div class="card"><h2>关于</h2>
-    <p class="muted">老年人合理用药干预·药师工作台 离线版V1.0（2026-07-14）。依据：《研究病例记录表》V2.0、《附件2 老年人合理用药干预措施方案及标准化话术》V1.0。量表计分规则：41题总分41–205，平均分≥4良好、3~4中等、≤3不足；总分≥157或平均分≥3.82达标；全部反向题由系统自动赋值。数据仅存本机浏览器，请定期备份。</p>
+    <p class="muted">老年人合理用药干预·药师工作台 离线版V1.0（2026-07-14）。依据：《研究病例记录表》V2.0、《附件2 老年人合理用药干预措施方案及标准化话术》V1.0。量表计分规则：41题总分41–205，平均分≥4良好、3~4中等、≤3不足；总分≥157或平均分≥3.82达标；全部反向题由系统自动赋值。数据仅存本机浏览器，请定期备份。<br>图文版操作手册：<a href="https://fsclyx.github.io/yaoshi-gongzuotai/%E8%8D%AF%E5%B8%88%E5%B7%A5%E4%BD%9C%E5%8F%B0%E4%BD%BF%E7%94%A8%E6%89%8B%E5%86%8C.docx" target="_blank">点此下载《药师工作台使用手册》(Word)</a>。</p>
   </div>`;
 }
 function saveSettings(){
