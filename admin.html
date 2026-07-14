@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>药师工作台 · 后台管理（审核端）</title>
+<style>
+:root{
+  --main:#6d28d9; --main-d:#4c1d95; --main-l:#f3efff;
+  --green:#2e8b57; --amber:#b45309; --red:#b91c1c;
+  --ink:#1f2937; --muted:#6b7280; --line:#d1d5db; --bg:#f3f4f6; --card:#ffffff;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Microsoft YaHei","PingFang SC",sans-serif;background:var(--bg);color:var(--ink);font-size:15px}
+header{background:var(--main-d);color:#fff;padding:12px 20px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+header h1{font-size:19px;font-weight:700}
+header .sub{font-size:12px;opacity:.85}
+main{max-width:1180px;margin:18px auto;padding:0 14px 60px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin-bottom:14px}
+.card h2{font-size:17px;color:var(--main-d);margin-bottom:10px;border-left:4px solid var(--main);padding-left:8px}
+.card h3{font-size:15px;margin:12px 0 6px}
+.grid{display:grid;gap:12px}
+.g2{grid-template-columns:1fr 1fr}.g3{grid-template-columns:1fr 1fr 1fr}.g4{grid-template-columns:repeat(4,1fr)}
+@media(max-width:760px){.g2,.g3,.g4{grid-template-columns:1fr}}
+label.f{display:block;font-size:13px;color:var(--muted);margin-bottom:3px}
+input,select,textarea{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:6px;font-size:15px;font-family:inherit;background:#fff}
+.btn{display:inline-block;background:var(--main);color:#fff;border:none;border-radius:7px;padding:9px 18px;font-size:15px;cursor:pointer;font-family:inherit}
+.btn:hover{background:var(--main-d)}
+.btn.sec{background:#fff;color:var(--main);border:1px solid var(--main)}
+.btn.ok{background:var(--green)}
+.btn.warn{background:var(--red)}
+.btn.sm{padding:5px 12px;font-size:13px;border-radius:6px}
+.btn:disabled{background:#9ca3af;cursor:not-allowed;border-color:#9ca3af;color:#eee}
+.tag{display:inline-block;padding:2px 10px;border-radius:12px;font-size:12.5px;font-weight:700}
+.tag.good{background:#d1fae5;color:#065f46}.tag.mid{background:#fef3c7;color:#92400e}.tag.low{background:#fee2e2;color:#991b1b}
+.tag.info{background:var(--main-l);color:var(--main-d)}
+.tag.grey{background:#e5e7eb;color:#374151}
+table.t{width:100%;border-collapse:collapse;font-size:14px}
+table.t th,table.t td{border:1px solid var(--line);padding:7px 9px;text-align:left;vertical-align:top}
+table.t th{background:#efeaf9}
+.plist{width:100%;border-collapse:collapse}
+.plist td,.plist th{padding:9px 8px;border-bottom:1px solid #e5e7eb;font-size:14px;text-align:left}
+.plist tr.clickable:hover td{background:var(--main-l);cursor:pointer}
+.note{background:#fffbeb;border:1px solid #fcd34d;border-radius:8px;padding:10px 12px;font-size:13.5px;margin:8px 0}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.spacer{flex:1}
+.chip{display:inline-block;background:#efeaf9;border:1px solid var(--line);border-radius:6px;padding:2px 8px;margin:2px;font-size:13px}
+.muted{color:var(--muted);font-size:13px}
+.stat{display:flex;gap:12px;flex-wrap:wrap}
+.stat .s{flex:1 1 130px;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px;text-align:center}
+.stat .s b{display:block;font-size:26px;color:var(--main-d)}
+.stat .s span{font-size:13px;color:var(--muted)}
+.bar{height:10px;background:#e5e7eb;border-radius:5px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--main)}
+.bar.weak i{background:var(--red)}
+.stage{border:1px solid var(--line);border-left:5px solid var(--main);border-radius:8px;padding:12px 14px;margin:10px 0;background:#fcfcfe}
+.stage.approved{border-left-color:var(--green)}
+.stage.rejected{border-left-color:var(--red)}
+.toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%);background:#111827;color:#fff;padding:10px 22px;border-radius:8px;font-size:14px;opacity:0;transition:.25s;pointer-events:none;z-index:99}
+.toast.show{opacity:.94}
+.sig{height:70px;border:1px solid var(--line);border-radius:6px;background:#fff}
+details summary{cursor:pointer;color:var(--main-d);font-weight:700;padding:4px 0}
+fieldset{border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin:10px 0}
+legend{font-size:14px;font-weight:700;color:var(--main-d);padding:0 6px}
+</style>
+</head>
+<body>
+<header>
+  <h1>药师工作台 · 后台管理</h1>
+  <span class="sub">老年人合理用药干预项目 · 数据审核端（配套前台 V1.2）</span>
+  <span class="spacer"></span>
+  <span class="sub" id="hd"></span>
+</header>
+<main id="main"></main>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============ 通用 ============ */
+function esc(s){ return String(s??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+function toast(msg){ const t=document.getElementById("toast"); t.textContent=msg; t.classList.add("show");
+  clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove("show"),2800); }
+function today(){ const d=new Date(),p=n=>String(n).padStart(2,"0"); return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`; }
+function b64(bytes){let s="";const CH=0x8000;for(let i=0;i<bytes.length;i+=CH){s+=String.fromCharCode.apply(null,bytes.subarray(i,i+CH));}return btoa(s);}
+function unb64(str){const bin=atob(str);const u=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);return u;}
+/* 与前台完全一致的端到端加密格式：salt(16)+iv(12)+AES-256-GCM密文，PBKDF2 150000次 SHA-256 */
+async function deriveKey(pass,salt){const km=await crypto.subtle.importKey("raw",new TextEncoder().encode(pass),"PBKDF2",false,["deriveKey"]);
+ return crypto.subtle.deriveKey({name:"PBKDF2",salt:salt,iterations:150000,hash:"SHA-256"},km,{name:"AES-GCM",length:256},false,["encrypt","decrypt"]);}
+async function encJson(obj,pass){const salt=crypto.getRandomValues(new Uint8Array(16)),iv=crypto.getRandomValues(new Uint8Array(12));
+ const key=await deriveKey(pass,salt);
+ const ct=new Uint8Array(await crypto.subtle.encrypt({name:"AES-GCM",iv:iv},key,new TextEncoder().encode(JSON.stringify(obj))));
+ const out=new Uint8Array(28+ct.length);out.set(salt,0);out.set(iv,16);out.set(ct,28);return b64(out);}
+async function decJson(pass,b){const u=unb64(b);const key=await deriveKey(pass,u.slice(0,16));
+ const pt=await crypto.subtle.decrypt({name:"AES-GCM",iv:u.slice(16,28)},key,u.slice(28));
+ return JSON.parse(new TextDecoder().decode(pt));}
+
+/* ============ 项目常量（与前台一致，用于展示） ============ */
+const LEVELS={good:{name:"良好",cls:"good"},mid:{name:"中等",cls:"mid"},low:{name:"不足",cls:"low"}};
+const INTERVENTIONS=["①药物素养知识教育","②合理用药技能提升","③药物不良反应顾虑教育","④用药错误观念纠正","⑤调整服药时间","⑥调整服药顺序或服药间隔","⑦增加用药提醒","⑧其他干预措施"];
+const DIM_NAMES=["给药途径的理解","药物质量认知","药物治疗常识","抗菌药物使用常识","用药风险意识","药师角色认知","药物购买行为","自我药疗风险行为","使用药品说明书的能力"];
+const AUDIT_STAGES={enroll:"入组基线",fu1:"随访1（第1个月）",fu2:"随访2（第3个月结题）"};
+const AUDIT_META={pending:{name:"待审核",cls:"grey"},approved:{name:"已通过",cls:"good"},rejected:{name:"已驳回",cls:"low"}};
+function stageExists(p,st){ return st==="enroll" || !!(p[st]&&p[st].done); }
+function auditOf(p,st){ return (p.audit&&p.audit[st])||{status:"pending"}; }
+function subAtOf(p,st){ const a=(p.audit&&p.audit[st])||{}; return a.subAt||null; }
+
+/* ============ 配置与状态 ============ */
+const CFG_KEY="ysgzt_admin_v1";
+let cfg={repo:"fsclyx/yaoshi-data",token:"",pass:"",name:""};
+try{ const r=localStorage.getItem(CFG_KEY); if(r) cfg=Object.assign(cfg,JSON.parse(r)); }catch(e){}
+let centers=[]; // {no,file,centerName,pharmacist,patients[],reviews{},reviewsSha,lastUp}
+let loaded=false, openPid=null;
+
+/* ============ Gitee API ============ */
+function apiBase(){ return "https://gitee.com/api/v5/repos/"+cfg.repo+"/"; }
+async function gFetch(pathQs, opts){
+  let url=apiBase()+pathQs;
+  let r=await fetch(url,Object.assign({headers:{"Authorization":"token "+cfg.token}},opts||{}));
+  if(r.status===401 && (!opts||!opts.method||opts.method==="GET")){
+    r=await fetch(url+(pathQs.includes("?")?"&":"?")+"access_token="+encodeURIComponent(cfg.token));
+  }
+  return r;
+}
+async function loadAll(){
+  saveCfg(false);
+  if(!cfg.repo||!cfg.token||!cfg.pass||!cfg.name){ alert("请完整填写：数据仓库、访问令牌、加密口令、管理员姓名（审核留痕必需）"); return; }
+  setHd("正在拉取…");
+  try{
+    const r=await gFetch("contents/backups");
+    if(r.status===404) throw new Error("仓库中没有 backups/ 目录（各中心尚未上传过备份）");
+    if(r.status===401||r.status===403) throw new Error("令牌无效或无权限("+r.status+")");
+    if(!r.ok) throw new Error("读取仓库失败("+r.status+")");
+    const files=(await r.json()).filter(f=>/^center-.+\.json\.enc$/.test(f.name));
+    if(!files.length) throw new Error("backups/ 目录下没有中心备份文件");
+    centers=[];
+    for(const f of files){
+      const c={file:f.name, no:(f.name.match(/^center-(.+)\.json\.enc$/)||[])[1]||"?", patients:[], reviews:{}, reviewsSha:null, lastUp:"", err:null};
+      try{
+        const fr=await gFetch("contents/backups/"+encodeURIComponent(f.name));
+        if(!fr.ok) throw new Error("下载失败("+fr.status+")");
+        const fj=await fr.json();
+        const st=await decJson(cfg.pass, String(fj.content||"").replace(/\n/g,""));
+        c.patients=st.patients||[];
+        c.centerName=(st.settings&&st.settings.centerName)||"";
+        c.pharmacist=(st.settings&&st.settings.pharmacist)||"";
+        if(st.settings&&st.settings.centerNo) c.no=st.settings.centerNo;
+      }catch(e){ c.err=(e.name==="OperationError")?"解密失败：加密口令不正确":e.message; }
+      // 审核文件（无则空）
+      try{
+        const rr=await gFetch("contents/reviews/"+encodeURIComponent(f.name));
+        if(rr.ok){ const rj=await rr.json(); c.reviewsSha=rj.sha||null;
+          const obj=await decJson(cfg.pass, String(rj.content||"").replace(/\n/g,""));
+          c.reviews=(obj&&obj.reviews)||{}; }
+      }catch(e){}
+      // 最后上传时间
+      try{
+        const cr=await gFetch("commits?path="+encodeURIComponent("backups/"+f.name)+"&per_page=1");
+        if(cr.ok){ const arr=await cr.json();
+          if(arr[0]&&arr[0].commit&&arr[0].commit.committer&&arr[0].commit.committer.date)
+            c.lastUp=arr[0].commit.committer.date.replace("T"," ").slice(0,16); }
+      }catch(e){}
+      centers.push(c);
+    }
+    centers.sort((a,b)=>String(a.no).localeCompare(String(b.no)));
+    loaded=true; render();
+    toast("已拉取 "+centers.length+" 个中心的数据");
+  }catch(e){ alert("拉取失败："+e.message); setHd(""); }
+}
+async function publishReviews(ci){
+  const c=centers[ci];
+  const content=await encJson({ver:1,updatedAt:new Date().toISOString(),reviews:c.reviews}, cfg.pass);
+  const path="contents/reviews/"+encodeURIComponent(c.file);
+  const body={access_token:cfg.token, message:"review update by "+cfg.name+" "+new Date().toLocaleString("zh-CN"), content:content};
+  if(c.reviewsSha) body.sha=c.reviewsSha;
+  const r=await fetch(apiBase()+path,{method:c.reviewsSha?"PUT":"POST",
+    headers:{"Content-Type":"application/json"}, body:JSON.stringify(body)});
+  if(!r.ok) throw new Error("审核结果上传失败("+r.status+")，请重试");
+  try{ const j=await r.json(); if(j&&j.content&&j.content.sha) c.reviewsSha=j.content.sha; }catch(e){}
+}
+
+/* ============ 审核动作 ============ */
+/* 审核结果绑定 dataAt=该阶段提交时间戳；前台只在时间戳一致时采纳，防止对旧版数据的审核误盖新数据 */
+async function doReview(ci, code, st, status){
+  const c=centers[ci];
+  const p=c.patients.find(x=>x.code===code); if(!p) return;
+  let reason="";
+  if(status==="rejected"){
+    reason=(document.getElementById(`rr_${ci}_${code}_${st}`)?.value||"").trim();
+    if(!reason){ alert("驳回必须填写修改意见（药师将按此整改）"); return; }
+  }
+  const rec={status, reason, by:cfg.name, at:today(), dataAt:subAtOf(p,st)};
+  c.reviews[code]=c.reviews[code]||{};
+  const prev=c.reviews[code][st];
+  c.reviews[code][st]=rec;
+  try{
+    await publishReviews(ci);
+    toast((status==="approved"?"已通过：":"已驳回：")+code+" · "+AUDIT_STAGES[st]+"（审核结果已发布）");
+  }catch(e){
+    if(prev) c.reviews[code][st]=prev; else delete c.reviews[code][st];
+    alert(e.message); return;
+  }
+  render();
+}
+function reviewOf(c,code,st){ return (c.reviews[code]&&c.reviews[code][st])||null; }
+/* 展示用状态：有审核且 dataAt 匹配 → 审核状态；dataAt 不匹配 → 待审核(数据已更新)；无审核 → 待审核 */
+function effStatus(c,p,st){
+  const r=reviewOf(c,p.code,st);
+  if(!r) return {status:"pending"};
+  if((r.dataAt||null)!==(subAtOf(p,st)||null)) return {status:"pending", stale:r};
+  return r;
+}
+
+/* ============ 渲染 ============ */
+const main=document.getElementById("main");
+function setHd(t){ document.getElementById("hd").textContent=t; }
+function render(){
+  setHd(cfg.name?("管理员："+cfg.name):"");
+  if(!loaded){ renderCfg(); return; }
+  let totalP=0, pend=0, rej=0, apr=0;
+  centers.forEach(c=>c.patients.forEach(p=>{
+    totalP++;
+    ["enroll","fu1","fu2"].forEach(st=>{ if(!stageExists(p,st))return;
+      const s=effStatus(c,p,st).status;
+      if(s==="approved")apr++; else if(s==="rejected")rej++; else pend++; });
+  }));
+  main.innerHTML=`
+  <div class="row" style="margin-bottom:10px">
+    <button class="btn sec sm" onclick="loaded=false;render()">⚙ 连接配置</button>
+    <button class="btn sec sm" onclick="loadAll()">⟳ 重新拉取</button>
+    <span class="spacer"></span>
+    <button class="btn sm" onclick="expAll()">导出全项目汇总CSV</button>
+  </div>
+  <div class="stat">
+    <div class="s"><b>${centers.length}</b><span>分中心</span></div>
+    <div class="s"><b>${totalP}</b><span>入组患者</span></div>
+    <div class="s"><b style="color:${pend?"var(--amber)":"var(--green)"}">${pend}</b><span>待审核阶段</span></div>
+    <div class="s"><b style="color:#065f46">${apr}</b><span>已通过阶段</span></div>
+    <div class="s"><b style="color:#991b1b">${rej}</b><span>已驳回阶段</span></div>
+  </div>
+  <div class="note">审核以“阶段”为单位（入组基线 / 随访1 / 随访2 各自独立）。驳回必须填写修改意见；结果实时加密发布到云端，前台药师同步后即可看到并整改。药师整改重新上传后，原审核自动失效回到“待审核”。本页面对数据<b>只读</b>，不会改动任何中心的原始数据。</div>
+  ${centers.map(centerCard).join("")}`;
+}
+function centerCard(c,ci){
+  if(c.err) return `<div class="card"><h2>中心 ${esc(c.no)}　${esc(c.file)}</h2><p style="color:var(--red)">${esc(c.err)}</p></div>`;
+  const cnt={pending:0,approved:0,rejected:0};
+  c.patients.forEach(p=>["enroll","fu1","fu2"].forEach(st=>{ if(stageExists(p,st)) cnt[effStatus(c,p,st).status]++; }));
+  return `<div class="card">
+    <h2>中心 ${esc(c.no)}　${esc(c.centerName||"")}</h2>
+    <p class="muted">药师：${esc(c.pharmacist||"—")}　患者：${c.patients.length} 人　最后上传：${esc(c.lastUp||"未知")}
+      <span class="tag grey">待审 ${cnt.pending}</span> <span class="tag good">通过 ${cnt.approved}</span> <span class="tag low">驳回 ${cnt.rejected}</span></p>
+    ${c.patients.length?`<table class="plist"><tr><th>编号</th><th>缩写</th><th>性别/年龄</th><th>入组日期</th><th>分层</th><th>入组基线</th><th>随访1</th><th>随访2</th></tr>
+      ${c.patients.map(p=>{
+        const cell=st=>{ if(!stageExists(p,st)) return '<span class="muted">未录入</span>';
+          const s=effStatus(c,p,st); const m=AUDIT_META[s.status];
+          return `<span class="tag ${m.cls}">${m.name}</span>${s.stale?'<br><span class="muted" style="font-size:11px">数据已更新待重审</span>':""}`; };
+        const open=openPid===c.no+"/"+p.code;
+        return `<tr class="clickable" onclick="togglePatient('${esc(c.no)}','${esc(p.code)}')">
+          <td>${esc(p.code)}</td><td>${esc(p.initials)}</td><td>${esc(p.sex)}/${esc(p.age)}</td><td>${esc(p.enrollDate)}</td>
+          <td><span class="tag ${(LEVELS[p.baseline&&p.baseline.level]||{}).cls||"grey"}">${(LEVELS[p.baseline&&p.baseline.level]||{}).name||"?"}</span></td>
+          <td>${cell("enroll")}</td><td>${cell("fu1")}</td><td>${cell("fu2")}</td></tr>
+        ${open?`<tr><td colspan="8" style="background:#fbfaff">${patientDetail(c,ci,p)}</td></tr>`:""}`;
+      }).join("")}</table>`:'<p class="muted">该中心暂无患者。</p>'}
+  </div>`;
+}
+function togglePatient(no,code){ openPid = openPid===(no+"/"+code) ? null : (no+"/"+code); render(); }
+function dimsBars(dims){
+  if(!dims) return "";
+  return DIM_NAMES.filter(n=>dims[n]!=null).map(n=>`
+    <div class="row" style="margin:2px 0"><span style="flex:0 0 168px;font-size:12.5px">${n}</span>
+    <div class="bar ${dims[n]<4?"weak":""}" style="flex:1;max-width:300px"><i style="width:${(dims[n]/5*100).toFixed(0)}%"></i></div>
+    <b style="width:38px;text-align:right;font-size:13px">${dims[n]}</b></div>`).join("");
+}
+function itemsGrid(title,arr){
+  if(!arr) return "";
+  return `<details><summary>${title}（逐题分值）</summary>
+    <p style="line-height:2.1">${arr.map((v,i)=>`<span class="chip">${i+1}题:${v}</span>`).join("")}</p></details>`;
+}
+function auditPanel(c,ci,p,st){
+  const s=effStatus(c,p,st); const m=AUDIT_META[s.status];
+  const r=reviewOf(c,p.code,st);
+  return `<div style="border-top:1px dashed var(--line);margin-top:8px;padding-top:8px">
+    <div class="row">
+      <b>审核：</b><span class="tag ${m.cls}">${m.name}</span>
+      ${s.stale?`<span class="muted">此前${s.stale.status==="approved"?"通过":"驳回"}（${esc(s.stale.by)} ${esc(s.stale.at)}），但药师已更新数据，需重审</span>`
+        :(r&&s.status!=="pending"?`<span class="muted">${esc(r.by)} ${esc(r.at)}${r.reason?("　意见："+esc(r.reason)):""}</span>`:"")}
+    </div>
+    <div class="row" style="margin-top:6px">
+      <input type="text" id="rr_${ci}_${esc(p.code)}_${st}" placeholder="驳回意见（驳回时必填，将原样显示给药师）" style="flex:1;min-width:240px">
+      <button class="btn ok sm" onclick="doReview(${ci},'${esc(p.code)}','${st}','approved')">✓ 通过</button>
+      <button class="btn warn sm" onclick="doReview(${ci},'${esc(p.code)}','${st}','rejected')">✗ 驳回</button>
+    </div></div>`;
+}
+function patientDetail(c,ci,p){
+  const b=p.baseline||{};
+  const meds=p.meds||[];
+  const stageCls=st=>{const s=effStatus(c,p,st).status;return s==="approved"?"approved":s==="rejected"?"rejected":"";};
+  const fuBlock=(which)=>{
+    const fu=which===1?p.fu1:p.fu2, st="fu"+which;
+    if(!fu||!fu.done) return `<div class="stage"><b>${AUDIT_STAGES[st]}</b>　<span class="muted">未录入</span></div>`;
+    return `<div class="stage ${stageCls(st)}"><b>${AUDIT_STAGES[st]}</b>
+      <p>日期：${esc(fu.date)}　方式：${esc(fu.method)}　不良反应：${fu.adr==="有"?("有——"+esc(fu.adrDesc)):"无"}</p>
+      <p>监测/达标：${esc(fu.monitor||"—")}</p>
+      ${which===1?`<p>新问题：${fu.newIssue==="有"?("有——"+esc(fu.newDesc)):"无"}</p>`
+        :`<p>计划外就诊：${fu.uv==="有"?`有（${esc(fu.uvType)}，${esc(fu.uvReason)}，调药：${esc(fu.uvAdj)}，约${esc(fu.uvCost)}元）`:"无"}　现用药：${esc(fu.drugCount)}种</p>
+         <p>AMRS复测：<b>${fu.amrsScore}</b>（基线${b.amrsScore}）　素养复测：总分<b>${fu.total}</b>（基线${b.total}）均分<b>${fu.avg}</b>（基线${b.avg}）
+           分层：<span class="tag ${(LEVELS[fu.level]||{}).cls}">${(LEVELS[fu.level]||{}).name||""}</span>　达标：${fu.pass?"是":"否"}</p>
+         <p>满意度：①${esc(fu.sat1)} ②${esc(fu.sat2)} ③${esc(fu.sat3)}　试验完成：${esc(fu.finish)}</p>
+         ${dimsBars(fu.dims)}${itemsGrid("素养复测",fu.lit)}${itemsGrid("AMRS复测",fu.amrs)}`}
+      <p>干预措施：${(fu.iv||[]).map(i=>`<span class="chip">${INTERVENTIONS[i]}</span>`).join("")||"—"} ${fu.ivNote?("备注："+esc(fu.ivNote)):""}</p>
+      ${auditPanel(c,ci,p,st)}</div>`;
+  };
+  return `
+  <div class="stage ${stageCls("enroll")}"><b>${AUDIT_STAGES.enroll}</b>
+    <p>${esc(p.sex)} / ${esc(p.age)}岁　入组：${esc(p.enrollDate)}　慢性病：${(p.diseases||[]).map(d=>`<span class="chip">${esc(d)}</span>`).join("")}　用药 ${esc(p.drugCount)} 种</p>
+    <p>知情同意：${p.consent?`${p.consent.mode==="electronic"?"电子签":"纸质签"}（${esc(p.consent.date||"")}）`:"（旧版录入，无电子记录）"}
+      ${p.consent&&p.consent.sig?`<br><img class="sig" src="${p.consent.sig}" alt="签名">`:""}</p>
+    ${meds.length?`<table class="t" style="max-width:640px"><tr><th>药名</th><th>剂量</th><th>频次</th><th>备注</th></tr>
+      ${meds.map(m=>`<tr><td>${esc(m.name)}</td><td>${esc(m.dose)}</td><td>${esc(m.freq)}</td><td>${esc(m.note||"")}</td></tr>`).join("")}</table>`
+      :'<p class="muted">无结构化用药清单</p>'}
+    ${p.notes?`<p class="muted">备注：${esc(p.notes)}</p>`:""}
+    <p style="margin-top:6px">AMRS：<b>${b.amrsScore??"?"}</b>/48　素养总分：<b>${b.total??"?"}</b>/205　均分：<b>${b.avg??"?"}</b>
+      分层：<span class="tag ${(LEVELS[b.level]||{}).cls||"grey"}">${(LEVELS[b.level]||{}).name||"?"}</span>　达标：${b.pass?"是":"否"}</p>
+    ${dimsBars(b.dims)}
+    <p>入组干预措施：${(b.iv||[]).map(i=>`<span class="chip">${INTERVENTIONS[i]}</span>`).join("")||"—"} ${b.ivNote?("备注："+esc(b.ivNote)):""}</p>
+    ${itemsGrid("素养量表基线",b.lit)}${itemsGrid("AMRS基线",b.amrs)}
+    ${auditPanel(c,ci,p,"enroll")}
+  </div>
+  ${fuBlock(1)}
+  ${fuBlock(2)}`;
+}
+
+/* ============ 连接配置页 ============ */
+function renderCfg(){
+  main.innerHTML=`
+  <div class="card"><h2>连接配置</h2>
+    <div class="note">本页面为<b>项目管理端</b>：凭 Gitee 访问令牌 + 项目统一加密口令，拉取各分中心加密上传的数据进行审核。没有令牌和口令无法看到任何数据（数据端到端加密，本页面不保存任何患者数据到云端，只发布审核结果）。令牌与口令仅保存在本机浏览器。</div>
+    <div class="grid g4">
+      <div><label class="f">数据仓库（用户名/仓库名）</label><input type="text" id="c_repo" value="${esc(cfg.repo)}" placeholder="如 fsclyx/yaoshi-data"></div>
+      <div><label class="f">Gitee 私人令牌（projects 权限）</label><input type="password" id="c_token" value="${esc(cfg.token)}"></div>
+      <div><label class="f">项目加密口令（与前台一致）</label><input type="password" id="c_pass" value="${esc(cfg.pass)}"></div>
+      <div><label class="f">管理员姓名（审核留痕）*</label><input type="text" id="c_name" value="${esc(cfg.name)}" placeholder="如 张三"></div>
+    </div>
+    <div class="row" style="margin-top:12px">
+      <button class="btn" onclick="loadAll()">连接并拉取数据</button>
+      <button class="btn sec" onclick="saveCfg(true)">仅保存配置</button>
+      ${loaded||centers.length?`<button class="btn sec" onclick="loaded=true;render()">返回数据页</button>`:""}
+    </div>
+  </div>
+  <div class="card"><h2>审核工作流程</h2>
+    <p class="muted" style="line-height:2">
+    ① 前台药师录入/修改数据 → 自动加密上传到本仓库 backups/ 目录；<br>
+    ② 管理员在本页面拉取解密，按 入组基线 / 随访1 / 随访2 三个阶段逐一查看，点【✓ 通过】或【✗ 驳回】（必填意见）；<br>
+    ③ 审核结果加密发布到 reviews/ 目录，前台药师端自动/手动同步后看到结果；<br>
+    ④ 被驳回的由药师在前台修改，保存即重新提交，旧审核自动失效回到"待审核"。</p>
+  </div>`;
+}
+function saveCfg(showToast){
+  const g=id=>document.getElementById(id)?.value?.trim();
+  if(document.getElementById("c_repo")){
+    cfg.repo=g("c_repo")||cfg.repo; cfg.token=g("c_token")??cfg.token;
+    cfg.pass=g("c_pass")??cfg.pass; cfg.name=g("c_name")??cfg.name;
+  }
+  try{ localStorage.setItem(CFG_KEY,JSON.stringify(cfg)); }catch(e){}
+  if(showToast) toast("配置已保存（仅存本机浏览器）");
+}
+
+/* ============ 全项目汇总导出 ============ */
+function csvEsc(v){ v=String(v??""); return /[",\n]/.test(v)?('"'+v.replace(/"/g,'""')+'"'):v; }
+function ivStr(iv){ return (iv||[]).map(i=>INTERVENTIONS[i]).join("；"); }
+function medsStr(p){ return (p.meds||[]).map(m=>`${m.name} ${m.dose} ${m.freq}${m.note?("("+m.note+")"):""}`).join("；"); }
+function expAll(){
+  const head=["中心号","中心名称","受试者编号","姓名缩写","性别","年龄","慢性病","用药数量","用药清单","知情同意方式","知情同意日期","入组日期","入群情况",
+    "审核_入组基线","审核_随访1","审核_随访2",
+    "AMRS基线","素养基线总分","素养基线均分","基线分层","基线达标",...DIM_NAMES.map(d=>"基线_"+d),"基线干预措施","基线干预备注",
+    "随访1完成","随访1日期","随访1方式","随访1不良反应","随访1不良反应描述","随访1监测达标","随访1新问题","随访1新问题描述","随访1干预措施",
+    "随访2完成","随访2日期","随访2方式","随访2不良反应","随访2不良反应描述","随访2监测达标","计划外就诊","就诊类型","就诊原因","是否调药","花费元","现用药数量",
+    "AMRS复测","素养复测总分","素养复测均分","复测分层","复测达标",...DIM_NAMES.map(d=>"复测_"+d),
+    "满意度1","满意度2","满意度3","试验完成情况","随访2干预措施"];
+  const rows=[];
+  centers.forEach(c=>{ if(c.err) return;
+    c.patients.forEach(p=>{
+      const b=p.baseline||{}, f1=p.fu1||{}, f2=p.fu2||{};
+      const au=st=>{ if(!stageExists(p,st))return "未录入"; const s=effStatus(c,p,st); return AUDIT_META[s.status].name+(s.stale?"(数据已更新)":""); };
+      rows.push([c.no,c.centerName||"",p.code,p.initials,p.sex,p.age,(p.diseases||[]).join("、"),p.drugCount,medsStr(p),
+        p.consent?(p.consent.mode==="electronic"?"电子签":"纸质签"):"",p.consent?(p.consent.date||""):"",p.enrollDate,p.group||"",
+        au("enroll"),au("fu1"),au("fu2"),
+        b.amrsScore??"",b.total??"",b.avg??"",(LEVELS[b.level]||{}).name||"",b.pass?"是":"否",
+        ...DIM_NAMES.map(d=>b.dims?b.dims[d]??"":""),ivStr(b.iv),b.ivNote||"",
+        f1.done?"是":"否",f1.date||"",f1.method||"",f1.adr||"",f1.adrDesc||"",f1.monitor||"",f1.newIssue||"",f1.newDesc||"",ivStr(f1.iv),
+        f2.done?"是":"否",f2.date||"",f2.method||"",f2.adr||"",f2.adrDesc||"",f2.monitor||"",f2.uv||"",f2.uvType||"",f2.uvReason||"",f2.uvAdj||"",f2.uvCost||"",f2.drugCount||"",
+        f2.amrsScore??"",f2.total??"",f2.avg??"",f2.level?(LEVELS[f2.level]||{}).name:"",f2.done?(f2.pass?"是":"否"):"",
+        ...DIM_NAMES.map(d=>f2.dims?f2.dims[d]??"":""),
+        f2.sat1||"",f2.sat2||"",f2.sat3||"",f2.finish||"",ivStr(f2.iv)]);
+    });
+  });
+  const blob=new Blob(["﻿"+[head,...rows].map(r=>r.map(csvEsc).join(",")).join("\n")],{type:"text/csv;charset=utf-8"});
+  const a=document.createElement("a"); a.href=URL.createObjectURL(blob);
+  a.download=`全项目汇总_${today()}.csv`; document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(a.href),2000);
+  toast("全项目汇总已导出（"+rows.length+"条）");
+}
+
+render();
+</script>
+</body>
+</html>

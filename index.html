@@ -106,7 +106,7 @@ canvas.sig{display:block;width:100%;height:180px;touch-action:none;cursor:crossh
 <body>
 <header>
   <h1>老年人合理用药干预 · 药师工作台</h1>
-  <span class="sub">基于药物素养的精准用药教育干预（配套CRF V2.0 / 附件2话术方案）· 离线版 V1.1</span>
+  <span class="sub">基于药物素养的精准用药教育干预（配套CRF V2.0 / 附件2话术方案）· 离线版 V1.2</span>
   <span class="spacer"></span>
   <span class="sub" id="hdCenter"></span>
 </header>
@@ -478,6 +478,77 @@ function fuStatus(p, which){
 }
 
 /* =====================================================================
+   数据审核（前台侧）：分阶段状态 入组基线/随访1/随访2
+   管理端(admin.html)审核结果加密存于云端 reviews/center-XX.json.enc，
+   前台同步合并；驳回后由药师在前台修改并重新保存（=重新提交）。
+===================================================================== */
+const AUDIT_STAGES={enroll:"入组基线",fu1:"随访1",fu2:"随访2"};
+const AUDIT_META={pending:{name:"待审核",cls:"grey"},approved:{name:"已通过",cls:"good"},rejected:{name:"已驳回",cls:"low"}};
+function auditOf(p,stage){ return (p.audit&&p.audit[stage])||{status:"pending"}; }
+function stageExists(p,stage){ return stage==="enroll" || !!(p[stage]&&p[stage].done); }
+function resetAudit(p,stage){ p.audit=p.audit||{}; p.audit[stage]={status:"pending",subAt:Date.now()}; }
+function auditBadge(p,stage){
+  if(!stageExists(p,stage)) return "";
+  const a=auditOf(p,stage), m=AUDIT_META[a.status]||AUDIT_META.pending;
+  return `<span class="tag ${m.cls}">${AUDIT_STAGES[stage]}·${m.name}</span>`;
+}
+function auditMini(p){
+  const mk=(st,label)=>{
+    if(!stageExists(p,st)) return `<span class="muted">${label}—</span>`;
+    const s=auditOf(p,st).status;
+    const sym=s==="approved"?"✓":s==="rejected"?"✗":"待";
+    const cls=s==="approved"?"due-ok":s==="rejected"?"due-over":"muted";
+    return `<span class="${cls}">${label}${sym}</span>`;
+  };
+  return mk("enroll","基")+" "+mk("fu1","①")+" "+mk("fu2","③");
+}
+function rejectNote(p,stage,actionHtml){
+  const a=auditOf(p,stage);
+  if(!stageExists(p,stage)||a.status!=="rejected") return "";
+  return `<div class="note" style="background:#fef2f2;border-color:#fca5a5"><b style="color:var(--red)">〔${AUDIT_STAGES[stage]}被驳回〕</b>
+    管理员意见：${esc(a.reason||"（未填写）")}　<span class="muted">${esc(a.by||"")} ${esc(a.at||"")}</span><br>
+    请按意见修改后重新保存（保存即重新提交审核）。${actionHtml||""}</div>`;
+}
+/* 合并管理端审核结果；dataAt 必须与本地该阶段 subAt 一致，否则视为对旧版数据的审核不予采纳 */
+function mergeReviews(reviews){
+  let approved=0,rejected=0,stale=0;
+  state.patients.forEach(p=>{
+    const rv=reviews[p.code]; if(!rv) return;
+    ["enroll","fu1","fu2"].forEach(st=>{
+      const r=rv[st]; if(!r||!stageExists(p,st)) return;
+      const local=auditOf(p,st);
+      if((r.dataAt||null)!==(local.subAt||null)){ stale++; return; }
+      if(local.status===r.status && local.at===r.at) return;
+      p.audit=p.audit||{};
+      p.audit[st]=Object.assign({},local,{status:r.status,reason:r.reason||"",by:r.by||"",at:r.at||""});
+      if(r.status==="approved")approved++; else if(r.status==="rejected")rejected++;
+    });
+  });
+  return {approved,rejected,stale};
+}
+function reviewsPath(){ return "reviews/center-"+(state.settings.centerNo||"00")+".json.enc"; }
+async function syncReviews(manual){
+  if(!cloud.repo||!cloud.token||!cloud.pass){
+    if(manual) alert("请先在【设置→云端加密备份】完整配置仓库/令牌/口令后再同步审核结果。"); return;
+  }
+  try{
+    const r=await giteeGetPath(reviewsPath());
+    if(r.status===404){ if(manual) toast("云端暂无本中心的审核结果"); return; }
+    if(!r.ok) throw new Error("下载失败("+r.status+")");
+    const j=await r.json();
+    const obj=await decState(cloud.pass, String(j.content||"").replace(/\n/g,""));
+    if(!obj||!obj.reviews) throw new Error("审核文件内容异常");
+    const res=mergeReviews(obj.reviews);
+    save();
+    if(manual||res.approved+res.rejected>0)
+      toast(`审核结果已同步：通过${res.approved} 驳回${res.rejected}`+(res.stale?`（${res.stale}条为旧版数据的审核，待管理员重审）`:""));
+    if(current==="dash") renderDash();
+  }catch(e){
+    if(manual) alert("同步审核结果失败："+(e.name==="OperationError"?"加密口令不正确":e.message));
+  }
+}
+
+/* =====================================================================
    通用组件：折叠话术卡 / 电子签字板 / 照片(IndexedDB) / 二维码 / 签字页打印
 ===================================================================== */
 function scriptBox(id, open){
@@ -667,6 +738,12 @@ function renderDash(){
   });
   dueList.sort((a,b)=> (a.st.code==="over"?0:1)-(b.st.code==="over"?0:1));
 
+  // 被驳回待整改
+  const rejList=[];
+  ps.forEach(p=>["enroll","fu1","fu2"].forEach(st=>{
+    if(stageExists(p,st)&&auditOf(p,st).status==="rejected") rejList.push({p,st,a:auditOf(p,st)});
+  }));
+
   // 本周推送
   let pushHtml = `<p class="muted">请先在【设置】中填写“群推送起始日期”（第1期发送当周的周一）。</p>`;
   if(state.settings.pushStart){
@@ -690,7 +767,15 @@ function renderDash(){
     <div class="s"><b style="color:#92400e">${cnt.mid}</b><span>素养中等（3~4）</span></div>
     <div class="s"><b style="color:#991b1b">${cnt.low}</b><span>素养不足（≤3）</span></div>
     <div class="s"><b style="color:${dueList.length?"var(--red)":"var(--green)"}">${dueList.length}</b><span>待随访 / 超窗</span></div>
+    <div class="s"><b style="color:${rejList.length?"var(--red)":"var(--green)"}">${rejList.length}</b><span>被驳回待整改</span></div>
   </div>
+  ${rejList.length?`<div class="card"><h2>审核驳回 · 待整改（${rejList.length}）</h2>
+    <table class="plist"><tr><th>编号</th><th>缩写</th><th>阶段</th><th>管理员意见</th><th></th></tr>
+    ${rejList.map(x=>`<tr onclick="go('detail','${x.p.id}')"><td>${esc(x.p.code)}</td><td>${esc(x.p.initials)}</td>
+      <td><span class="tag low">${AUDIT_STAGES[x.st]}</span></td>
+      <td>${esc(x.a.reason||"（未填写）")}<span class="muted"> — ${esc(x.a.by||"")} ${esc(x.a.at||"")}</span></td>
+      <td><button class="btn sm" onclick="event.stopPropagation();${x.st==="enroll"?`editPatient('${x.p.id}')`:`fuTmp=null;go('fu',{id:'${x.p.id}',which:${x.st==="fu1"?1:2},edit:1})`}">整改</button></td></tr>`).join("")}
+    </table><p class="muted" style="margin-top:6px">整改后保存即自动重新提交审核（随下一次云端加密上传送达管理端）。</p></div>`:""}
   <div class="card"><h2>随访待办</h2>
     ${dueList.length? `<table class="plist"><tr><th>编号</th><th>缩写</th><th>分层</th><th>随访</th><th>状态</th><th></th></tr>`+
       dueList.map(d=>`<tr onclick="go('detail','${d.p.id}')"><td>${esc(d.p.code)}</td><td>${esc(d.p.initials)}</td>
@@ -703,6 +788,7 @@ function renderDash(){
   <div class="card"><h2>快速入口</h2>
     <div class="row">
       <button class="btn" onclick="go('enroll')">＋ 新增入组</button>
+      <button class="btn sec" onclick="syncReviews(true)">⟳ 同步审核结果</button>
       <button class="btn sec" onclick="go('scripts')">打开话术库</button>
       <button class="btn sec" onclick="go('data')">导出数据</button>
       <a class="btn sec" href="https://fsclyx.github.io/yaoshi-gongzuotai/%E8%8D%AF%E5%B8%88%E5%B7%A5%E4%BD%9C%E5%8F%B0%E4%BD%BF%E7%94%A8%E6%89%8B%E5%86%8C.docx" target="_blank">下载使用手册</a>
@@ -718,14 +804,15 @@ function renderPatients(){
   <div class="row" style="margin-bottom:10px">
     <input type="text" id="pq" class="searchbox" placeholder="搜索编号 / 姓名缩写" oninput="filterP()">
     <span class="spacer"></span><button class="btn" onclick="go('enroll')">＋ 新增入组</button></div>
-  <table class="plist" id="ptab"><tr><th>编号</th><th>缩写</th><th>性别/年龄</th><th>入组日期</th><th>素养</th><th>分层</th><th>随访1</th><th>随访2</th></tr>
+  <table class="plist" id="ptab"><tr><th>编号</th><th>缩写</th><th>性别/年龄</th><th>入组日期</th><th>素养</th><th>分层</th><th>随访1</th><th>随访2</th><th>审核（基/①/③）</th></tr>
   ${ps.map(p=>{
     const s1=fuStatus(p,1),s2=fuStatus(p,2);
     return `<tr data-k="${esc(p.code)} ${esc(p.initials)}" onclick="go('detail','${p.id}')">
     <td>${esc(p.code)}</td><td>${esc(p.initials)}</td><td>${p.sex}/${p.age}</td><td>${p.enrollDate}</td>
     <td>${p.baseline.avg}</td><td><span class="tag ${LEVELS[p.baseline.level].cls}">${LEVELS[p.baseline.level].name}</span></td>
     <td class="${s1.cls}">${s1.code==="done"?"✔":s1.code==="pending"?"—":s1.code==="due"?"待访":"超窗"}</td>
-    <td class="${s2.cls}">${s2.code==="done"?"✔":s2.code==="pending"?"—":s2.code==="due"?"待访":"超窗"}</td></tr>`;
+    <td class="${s2.cls}">${s2.code==="done"?"✔":s2.code==="pending"?"—":s2.code==="due"?"待访":"超窗"}</td>
+    <td style="white-space:nowrap">${auditMini(p)}</td></tr>`;
   }).join("")}</table>
   ${ps.length?"":'<p class="muted">尚无患者，点击“新增入组”开始。</p>'}</div>`;
 }
@@ -757,7 +844,7 @@ function renderEnroll(){
     + `<p class="muted">系统按CRF印制分值自动计分（含全部反向题的自动赋值），无需人工换算。</p>`;
   if(st===5) body = resultHtml();
   if(st===6) body = enrollFinishHtml();
-  view.innerHTML = `<div class="card"><h2>新增入组</h2>
+  view.innerHTML = `<div class="card"><h2>${enr.editId?`编辑患者 ${esc(enr.info.code||"")}（保存后重新提交审核）`:"新增入组"}</h2>
     <div class="steps">${ENR_STEPS.map((s,i)=>`<div class="${i===st?"on":i<st?"done":""}">${s}</div>`).join("")}</div>
     <div class="note">每一步已嵌入对应话术（可展开查看、可跳过）：①知情同意-A1　④⑤量表施测-A2　⑥首次干预-B类　⑦入群邀请-A3。</div>
     ${body}
@@ -923,7 +1010,7 @@ function enrNext(){
     collectInfo();
     const i=enr.info, errs=[];
     if(!/^\d{4,8}$/.test(i.code)) errs.push("受试者编号应为数字（中心号+顺序号）");
-    if(state.patients.some(p=>p.code===i.code)) errs.push("该编号已存在");
+    if(state.patients.some(p=>p.code===i.code && p.id!==enr.editId)) errs.push("该编号已存在");
     if(!/^[A-Z]{2,4}$/.test(i.initials)) errs.push("姓名缩写应为2~4位大写字母");
     if(!i.enrollDate) errs.push("请填入组日期");
     if(!i.sex) errs.push("请选择性别");
@@ -997,21 +1084,47 @@ function enrSave(){
   const r = scoreLit(enr.lit);
   enr.info.group = document.getElementById("f_group")?.value || enr.info.group;
   const meds = enr.meds.filter(m=>m.name.trim());
-  const p = {
-    id:"p"+Date.now(), code:enr.info.code, initials:enr.info.initials, sex:enr.info.sex, age:enr.info.age,
+  const fields = {
+    code:enr.info.code, initials:enr.info.initials, sex:enr.info.sex, age:enr.info.age,
     diseases:enr.info.diseases, drugCount:enr.info.drugCount, enrollDate:enr.info.enrollDate,
     phone:enr.info.phone, group:enr.info.group, pref:enr.info.pref, notes:enr.info.notes,
     consent:{mode:enr.consent.mode, date:enr.consent.date, sig:enr.consent.mode==="electronic"?enr.consent.sig:null},
     meds:meds,
     baseline:{amrs:enr.amrs.slice(), amrsScore:scoreAmrs(enr.amrs), lit:enr.lit.slice(),
       total:r.total, avg:r.avg, level:r.level, pass:r.pass, dims:r.dims,
-      iv:enr.iv.slice().sort(), ivNote:enr.ivNote},
-    fu1:null, fu2:null
+      iv:enr.iv.slice().sort(), ivNote:enr.ivNote}
   };
-  state.patients.push(p); save();
-  if(enr.photos.length) photosSet(p.id, enr.photos.slice());
-  toast("入组保存成功："+p.code);
+  let p;
+  if(enr.editId){ // 编辑既有患者：原地更新，保留 id/随访/其余阶段审核状态
+    p = state.patients.find(x=>x.id===enr.editId);
+    if(!p){ toast("未找到原记录"); enr=null; go("patients"); return; }
+    Object.assign(p, fields);
+  } else {
+    p = Object.assign({id:"p"+Date.now(), fu1:null, fu2:null}, fields);
+    state.patients.push(p);
+  }
+  resetAudit(p,"enroll"); // 新建或修改后：入组阶段回到待审核（保存即提交）
+  save();
+  photosSet(p.id, enr.photos.slice());
+  toast(enr.editId?("修改已保存并重新提交审核："+p.code):("入组保存成功："+p.code));
   enr=null; go("detail", p.id);
+}
+async function editPatient(id){
+  const p=state.patients.find(x=>x.id===id); if(!p) return;
+  if(auditOf(p,"enroll").status==="approved" &&
+     !confirm("该患者入组数据已审核通过，修改后将重新变为“待审核”。继续编辑？")) return;
+  enr = {step:0, editId:id,
+    info:{code:p.code, initials:p.initials, enrollDate:p.enrollDate, sex:p.sex, age:p.age,
+      drugCount:p.drugCount, phone:p.phone||"", group:p.group||"是", pref:p.pref||"电话",
+      notes:p.notes||"", diseases:(p.diseases||[]).slice()},
+    consent: p.consent ? {mode:p.consent.mode, date:p.consent.date, sig:p.consent.sig}
+                       : {mode:"electronic", date:p.enrollDate, sig:null},
+    meds: (p.meds&&p.meds.length) ? p.meds.map(m=>({name:m.name,dose:m.dose,freq:m.freq,note:m.note||""}))
+                                  : [{name:"",dose:"",freq:"",note:""}],
+    photos: await photosGet(id),
+    amrs:p.baseline.amrs.slice(), lit:p.baseline.lit.slice(),
+    iv:(p.baseline.iv||[]).slice(), ivNote:p.baseline.ivNote||""};
+  go('enroll');
 }
 
 /* ---------------- 患者详情 ---------------- */
@@ -1036,12 +1149,14 @@ function renderDetail(id){
         <p>满意度：达到治疗目标-${fu.sat1}；健康与幸福感提高-${fu.sat2}；愿意推荐-${fu.sat3}</p>
         <p>试验完成：${esc(fu.finish)}</p>`;
       }
+      inner = rejectNote(p,"fu"+which,`<button class="btn sm" onclick="fuTmp=null;go('fu',{id:'${p.id}',which:${which},edit:1})">立即修改整改</button>`) + inner
+        + `<div class="row" style="margin-top:6px"><button class="btn sm sec" onclick="fuTmp=null;go('fu',{id:'${p.id}',which:${which},edit:1})">✎ 修改本次随访</button></div>`;
     } else {
       inner = `<p class="${st.cls}">${st.label}</p>
       <p class="muted">随访前可在群发送 C4-2 随访预告；随访使用话术 D${which}${which===2?"（含量表复测与满意度）":""}。</p>
       <button class="btn" onclick="go('fu',{id:'${p.id}',which:${which}})">录入第${fuMonth(which)}个月随访</button>`;
     }
-    return `<div class="card"><h2>第${fuMonth(which)}个月随访 ${fu&&fu.done?'<span class="tag good">已完成</span>':""}</h2>${inner}</div>`;
+    return `<div class="card"><h2>第${fuMonth(which)}个月随访 ${fu&&fu.done?'<span class="tag good">已完成</span> '+auditBadge(p,"fu"+which):""}</h2>${inner}</div>`;
   };
   const meds = p.meds||[];
   const qrSrc = (p.fu2&&p.fu2.done&&p.fu2.lit)
@@ -1049,8 +1164,11 @@ function renderDetail(id){
     : {lit:b.lit, amrs:b.amrs, date:p.enrollDate, label:"患者结果二维码（基线评估结果）"};
   view.innerHTML = `
   <div class="row" style="margin-bottom:10px"><button class="btn sec sm" onclick="go('patients')">← 返回列表</button>
+    <button class="btn sm" onclick="editPatient('${p.id}')">✎ 编辑患者（入组数据整改）</button>
     <span class="spacer"></span><button class="btn warn sm" onclick="delPatient('${p.id}')">删除该患者</button></div>
+  ${rejectNote(p,"enroll",`<button class="btn sm" onclick="editPatient('${p.id}')">立即编辑整改</button>`)}
   <div class="card"><h2>${esc(p.code)}　${esc(p.initials)}　<span class="tag ${L.cls}">素养${L.name}</span> ${b.pass?'<span class="tag info">达标</span>':""}</h2>
+    <p>审核状态：${auditBadge(p,"enroll")} ${auditBadge(p,"fu1")||'<span class="tag grey">随访1·未录入</span>'} ${auditBadge(p,"fu2")||'<span class="tag grey">随访2·未录入</span>'}</p>
     <p>${p.sex} / ${p.age}岁　入组：${p.enrollDate}　随访偏好：${esc(p.pref||"")}　微信群：${esc(p.group||"")} ${p.phone?("　电话："+esc(p.phone)):""}</p>
     <p>慢性病：${p.diseases.map(d=>`<span class="chip">${d}</span>`).join("")}　用药 ${p.drugCount} 种</p>
     <p>知情同意：${p.consent?`<span class="tag info">${p.consent.mode==="electronic"?"电子签":"纸质签"}（${esc(p.consent.date||"")}）</span>
@@ -1131,67 +1249,78 @@ let fuTmp=null;
 function renderFu(arg){
   const p = state.patients.find(x=>x.id===arg.id); if(!p){go("patients");return;}
   const which = arg.which;
-  if(!fuTmp || fuTmp.pid!==p.id || fuTmp.which!==which){
-    fuTmp = {pid:p.id, which, date:today(), method:p.pref||"电话", adr:"否", newIssue:"无", uv:"无",
-      iv:[], amrs:Array(12).fill(null), lit:Array(41).fill(null)};
+  const editing = !!arg.edit;
+  const old = editing ? (which===1?p.fu1:p.fu2) : null;
+  if(!fuTmp || fuTmp.pid!==p.id || fuTmp.which!==which || fuTmp.editing!==editing){
+    if(editing && old && old.done){
+      fuTmp = {pid:p.id, which, editing:true, date:old.date, method:old.method,
+        adr:old.adr||"否", newIssue:old.newIssue||"无", uv:old.uv||"无",
+        iv:(old.iv||[]).slice(),
+        amrs:(old.amrs?old.amrs.slice():Array(12).fill(null)),
+        lit:(old.lit?old.lit.slice():Array(41).fill(null))};
+    } else {
+      fuTmp = {pid:p.id, which, editing:false, date:today(), method:p.pref||"电话", adr:"否", newIssue:"无", uv:"无",
+        iv:[], amrs:Array(12).fill(null), lit:Array(41).fill(null)};
+    }
   }
+  const fv = (editing && old) ? old : {}; // 编辑时回填文本/下拉字段
+  const sel=(v,opt)=>v===opt?" selected":"";
   const dscr = SCRIPTS.find(s=>s.id==="D"+which);
   const L = LEVELS[p.baseline.level];
   view.innerHTML = `<div class="card">
-    <h2>第${fuMonth(which)}个月随访录入 —— ${esc(p.code)} ${esc(p.initials)}
+    <h2>第${fuMonth(which)}个月随访${editing?"修改（保存后重新提交审核）":"录入"} —— ${esc(p.code)} ${esc(p.initials)}
       <span class="tag ${L.cls}">素养${L.name}</span></h2>
+    ${editing?rejectNote(p,"fu"+which):""}
     <div class="note"><b>本层随访强化点：</b>${which===1?L.fu1:L.fu2}</div>
-    <div class="script"><div class="sh"><b>${dscr.id}　${esc(dscr.title)}</b>
-      <button class="btn sm" onclick="copyScript('${dscr.id}')">复制脚本</button></div>
-      <div class="sb">${esc(dscr.body)}</div></div>
+    ${scriptBox("D"+which)}
     <div class="grid g3">
       <div><label class="f">随访日期*</label><input type="date" id="u_date" value="${fuTmp.date}"></div>
-      <div><label class="f">随访方式*</label><select id="u_method"><option${fuTmp.method==="电话"?" selected":""}>电话</option><option${fuTmp.method==="微信"?" selected":""}>微信</option><option${fuTmp.method==="现场"?" selected":""}>现场</option></select></div>
+      <div><label class="f">随访方式*</label><select id="u_method"><option${sel(fuTmp.method,"电话")}>电话</option><option${sel(fuTmp.method,"微信")}>微信</option><option${sel(fuTmp.method,"现场")}>现场</option></select></div>
     </div>
     <fieldset><legend>1. 药物不良反应</legend>
-      <label class="ck"><input type="radio" name="u_adr" value="否" checked onchange="fuTmp.adr='否'">无</label>
-      <label class="ck"><input type="radio" name="u_adr" value="是" onchange="fuTmp.adr='有'">有</label>
-      <input type="text" id="u_adrdesc" placeholder="如有：描述表现、时间、处理（疑重按C6转诊并上报）">
+      <label class="ck"><input type="radio" name="u_adr" value="否" ${fuTmp.adr!=="有"?"checked":""} onchange="fuTmp.adr='否'">无</label>
+      <label class="ck"><input type="radio" name="u_adr" value="是" ${fuTmp.adr==="有"?"checked":""} onchange="fuTmp.adr='有'">有</label>
+      <input type="text" id="u_adrdesc" value="${esc(fv.adrDesc||"")}" placeholder="如有：描述表现、时间、处理（疑重按C6转诊并上报）">
     </fieldset>
     <fieldset><legend>2. 监测结果与达标（按所患疾病填写）</legend>
-      <textarea id="u_monitor" placeholder="例：血压 138/82 达标；空腹血糖 7.8 不达标；血脂未监测；心绞痛 0 次"></textarea>
+      <textarea id="u_monitor" placeholder="例：血压 138/82 达标；空腹血糖 7.8 不达标；血脂未监测；心绞痛 0 次">${esc(fv.monitor||"")}</textarea>
     </fieldset>
     ${which===1?`
     <fieldset><legend>3. 新的药物治疗相关问题</legend>
-      <label class="ck"><input type="radio" name="u_ni" value="无" checked onchange="fuTmp.newIssue='无'">无</label>
-      <label class="ck"><input type="radio" name="u_ni" value="有" onchange="fuTmp.newIssue='有'">有</label>
-      <input type="text" id="u_nidesc" placeholder="如有请简述">
+      <label class="ck"><input type="radio" name="u_ni" value="无" ${fuTmp.newIssue!=="有"?"checked":""} onchange="fuTmp.newIssue='无'">无</label>
+      <label class="ck"><input type="radio" name="u_ni" value="有" ${fuTmp.newIssue==="有"?"checked":""} onchange="fuTmp.newIssue='有'">有</label>
+      <input type="text" id="u_nidesc" value="${esc(fv.newDesc||"")}" placeholder="如有请简述">
     </fieldset>`:`
     <fieldset><legend>3. 计划外就诊（入组以来）</legend>
-      <label class="ck"><input type="radio" name="u_uv" value="无" checked onchange="fuTmp.uv='无'">无</label>
-      <label class="ck"><input type="radio" name="u_uv" value="有" onchange="fuTmp.uv='有'">有</label>
+      <label class="ck"><input type="radio" name="u_uv" value="无" ${fuTmp.uv!=="有"?"checked":""} onchange="fuTmp.uv='无'">无</label>
+      <label class="ck"><input type="radio" name="u_uv" value="有" ${fuTmp.uv==="有"?"checked":""} onchange="fuTmp.uv='有'">有</label>
       <div class="grid g4" style="margin-top:6px">
-        <div><label class="f">就诊类型</label><select id="u_uvtype"><option></option><option>门诊</option><option>急诊</option><option>住院</option></select></div>
-        <div><label class="f">原因</label><select id="u_uvreason"><option></option><option>常规开药</option><option>原发病加重</option><option>药物不良反应</option><option>其他</option></select></div>
-        <div><label class="f">是否调整用药</label><select id="u_uvadj"><option></option><option>是</option><option>否</option></select></div>
-        <div><label class="f">花费约（元）</label><input type="number" id="u_uvcost" min="0"></div>
+        <div><label class="f">就诊类型</label><select id="u_uvtype"><option></option><option${sel(fv.uvType,"门诊")}>门诊</option><option${sel(fv.uvType,"急诊")}>急诊</option><option${sel(fv.uvType,"住院")}>住院</option></select></div>
+        <div><label class="f">原因</label><select id="u_uvreason"><option></option><option${sel(fv.uvReason,"常规开药")}>常规开药</option><option${sel(fv.uvReason,"原发病加重")}>原发病加重</option><option${sel(fv.uvReason,"药物不良反应")}>药物不良反应</option><option${sel(fv.uvReason,"其他")}>其他</option></select></div>
+        <div><label class="f">是否调整用药</label><select id="u_uvadj"><option></option><option${sel(fv.uvAdj,"是")}>是</option><option${sel(fv.uvAdj,"否")}>否</option></select></div>
+        <div><label class="f">花费约（元）</label><input type="number" id="u_uvcost" min="0" value="${esc(fv.uvCost||"")}"></div>
       </div>
     </fieldset>
-    <fieldset><legend>4. 现用药数量（种）</legend><input type="number" id="u_drug" min="0" value="${p.drugCount}"></fieldset>
+    <fieldset><legend>4. 现用药数量（种）</legend><input type="number" id="u_drug" min="0" value="${esc(fv.drugCount!=null?fv.drugCount:p.drugCount)}"></fieldset>
     <fieldset><legend>5. AMRS 复测（12题）</legend>${qHtml("",AMRS_ITEMS,fuTmp.amrs,"amrs").replace("<h3></h3>","")}</fieldset>
     <fieldset><legend>6. 药物素养量表复测（41题，话术A2引导）</legend>${qHtml("",LIT_ITEMS,fuTmp.lit,"lit").replace("<h3></h3>","")}</fieldset>
     <fieldset><legend>7. 满意度（照读三问）</legend>
       <div class="grid g3">
-      <div><label class="f">①通过药师帮助达到治疗目标</label><select id="u_s1"><option>是</option><option>否</option></select></div>
-      <div><label class="f">②健康状况和幸福感有提高</label><select id="u_s2"><option>是</option><option>否</option></select></div>
-      <div><label class="f">③愿意推荐给其他老年人</label><select id="u_s3"><option>是</option><option>否</option></select></div>
+      <div><label class="f">①通过药师帮助达到治疗目标</label><select id="u_s1"><option${sel(fv.sat1,"是")}>是</option><option${sel(fv.sat1,"否")}>否</option></select></div>
+      <div><label class="f">②健康状况和幸福感有提高</label><select id="u_s2"><option${sel(fv.sat2,"是")}>是</option><option${sel(fv.sat2,"否")}>否</option></select></div>
+      <div><label class="f">③愿意推荐给其他老年人</label><select id="u_s3"><option${sel(fv.sat3,"是")}>是</option><option${sel(fv.sat3,"否")}>否</option></select></div>
       </div>
     </fieldset>
     <fieldset><legend>8. 试验完成情况</legend>
-      <select id="u_finish"><option>完成试验</option><option>失访</option><option>自行退出</option><option>死亡</option><option>严重不良事件/症状恶化</option><option>符合排除标准剔除</option><option>其他</option></select>
+      <select id="u_finish">${["完成试验","失访","自行退出","死亡","严重不良事件/症状恶化","符合排除标准剔除","其他"].map(o=>`<option${sel(fv.finish,o)}>${o}</option>`).join("")}</select>
     </fieldset>`}
     <fieldset><legend>本次实施的干预措施（对应CRF勾选）</legend>
-      ${INTERVENTIONS.map((t,i)=>`<label class="ck"><input type="checkbox" onchange="fuIv(${i},this.checked)">${t}</label>`).join("")}
-      <input type="text" id="u_ivnote" placeholder="⑧其他/备注" style="margin-top:6px">
+      ${INTERVENTIONS.map((t,i)=>`<label class="ck"><input type="checkbox" ${fuTmp.iv.includes(i)?"checked":""} onchange="fuIv(${i},this.checked)">${t}</label>`).join("")}
+      <input type="text" id="u_ivnote" value="${esc(fv.ivNote||"")}" placeholder="⑧其他/备注" style="margin-top:6px">
     </fieldset>
     <div class="row"><span class="spacer"></span>
-      <button class="btn" onclick="fuSave('${p.id}',${which})">保存随访</button>
-      <button class="btn sec" onclick="go('detail','${p.id}')">取消</button></div>
+      <button class="btn" onclick="fuSave('${p.id}',${which})">保存随访${editing?"（重新提交审核）":""}</button>
+      <button class="btn sec" onclick="fuTmp=null;go('detail','${p.id}')">取消</button></div>
   </div>`;
 }
 function fuIv(i,on){ if(on){ if(!fuTmp.iv.includes(i))fuTmp.iv.push(i);} else fuTmp.iv=fuTmp.iv.filter(x=>x!==i); }
@@ -1220,8 +1349,10 @@ function fuSave(pid,which){
     fu.newIssue="—";
   }
   if(which===1) p.fu1=fu; else p.fu2=fu;
+  resetAudit(p,"fu"+which); // 新录或修改后该阶段回到待审核（保存即提交）
+  const wasEdit=fuTmp.editing;
   save(); fuTmp=null;
-  toast(`第${fuMonth(which)}个月随访已保存`);
+  toast(`第${fuMonth(which)}个月随访已保存${wasEdit?"，已重新提交审核":""}`);
   go("detail",pid);
 }
 
@@ -1477,12 +1608,14 @@ async function decState(pass,b){const u=unb64(b);const key=await deriveKey(pass,
  const pt=await crypto.subtle.decrypt({name:"AES-GCM",iv:u.slice(16,28)},key,u.slice(28));
  return JSON.parse(new TextDecoder().decode(pt));}
 function cloudPath(){return "backups/center-"+(state.settings.centerNo||"00")+".json.enc";}
-function cloudApiUrl(){return "https://gitee.com/api/v5/repos/"+cloud.repo+"/contents/"+cloudPath();}
-async function giteeGet(){
- let r=await fetch(cloudApiUrl(),{headers:{"Authorization":"token "+cloud.token}});
- if(r.status===401){ r=await fetch(cloudApiUrl()+"?access_token="+encodeURIComponent(cloud.token)); }
+function apiUrlFor(path){return "https://gitee.com/api/v5/repos/"+cloud.repo+"/contents/"+path;}
+function cloudApiUrl(){return apiUrlFor(cloudPath());}
+async function giteeGetPath(path){
+ let r=await fetch(apiUrlFor(path),{headers:{"Authorization":"token "+cloud.token}});
+ if(r.status===401){ r=await fetch(apiUrlFor(path)+"?access_token="+encodeURIComponent(cloud.token)); }
  return r;
 }
+async function giteeGet(){ return giteeGetPath(cloudPath()); }
 let cloudTimer=null, cloudBusy=false;
 function scheduleCloud(){ if(!cloud.auto||!cloud.repo||!cloud.token||!cloud.pass) return;
  clearTimeout(cloudTimer); cloudTimer=setTimeout(function(){cloudUpload(false);},15000);}
@@ -1582,7 +1715,7 @@ function renderSettings(){
     <p class="muted" id="aimsg" style="margin-top:6px">${aiReady()?"已启用，可在【AI辅助】页使用。":"未启用时【AI辅助】页功能不可点击。"}</p>
   </div>
   <div class="card"><h2>关于</h2>
-    <p class="muted">老年人合理用药干预·药师工作台 离线版V1.1（2026-07-14）。依据：《研究病例记录表》V2.0、《附件2 老年人合理用药干预措施方案及标准化话术》V1.0。量表计分规则：41题总分41–205，平均分≥4良好、3~4中等、≤3不足；总分≥157或平均分≥3.82达标；全部反向题由系统自动赋值。数据仅存本机浏览器，请定期备份。<br>图文版操作手册：<a href="https://fsclyx.github.io/yaoshi-gongzuotai/%E8%8D%AF%E5%B8%88%E5%B7%A5%E4%BD%9C%E5%8F%B0%E4%BD%BF%E7%94%A8%E6%89%8B%E5%86%8C.docx" target="_blank">点此下载《药师工作台使用手册》(Word)</a>。</p>
+    <p class="muted">老年人合理用药干预·药师工作台 离线版V1.2（2026-07-15）。依据：《研究病例记录表》V2.0、《附件2 老年人合理用药干预措施方案及标准化话术》V1.0。量表计分规则：41题总分41–205，平均分≥4良好、3~4中等、≤3不足；总分≥157或平均分≥3.82达标；全部反向题由系统自动赋值。数据仅存本机浏览器，请定期备份。<br>图文版操作手册：<a href="https://fsclyx.github.io/yaoshi-gongzuotai/%E8%8D%AF%E5%B8%88%E5%B7%A5%E4%BD%9C%E5%8F%B0%E4%BD%BF%E7%94%A8%E6%89%8B%E5%86%8C.docx" target="_blank">点此下载《药师工作台使用手册》(Word)</a>。</p>
   </div>`;
 }
 function saveSettings(){
@@ -1644,12 +1777,27 @@ window.__selftest = function(){
   out.push(["QR链接生成非空?", qrLink("01001","ZHSA","2026-07-14",Array(41).fill(4),Array(12).fill(2)).startsWith(PATIENT_URL+"#1")]);
   out.push(["meds兼容: 旧数据无meds不报错?", medsStr({})==="" ]);
   out.push(["AMRS提示: 12条齐全?", AMRS_TIPS.length===12]);
+  // 审核逻辑
+  const tp={id:"pSELFTEST",code:"99999",fu1:{done:true},fu2:null};
+  out.push(["audit兜底: 无audit视为待审核?", auditOf(tp,"enroll").status==="pending"]);
+  out.push(["阶段存在性: fu1有 fu2无?", stageExists(tp,"fu1")===true && stageExists(tp,"fu2")===false]);
+  resetAudit(tp,"enroll");
+  out.push(["resetAudit: 置pending并记subAt?", tp.audit.enroll.status==="pending" && tp.audit.enroll.subAt>0]);
+  state.patients.push(tp);
+  const r_ok=mergeReviews({"99999":{enroll:{status:"rejected",reason:"测试",by:"T",at:"2026-07-15",dataAt:tp.audit.enroll.subAt}}});
+  const applied=auditOf(tp,"enroll").status==="rejected";
+  const r_stale=mergeReviews({"99999":{enroll:{status:"approved",by:"T",at:"2026-07-15",dataAt:123}}});
+  const notApplied=auditOf(tp,"enroll").status==="rejected";
+  state.patients=state.patients.filter(x=>x.id!=="pSELFTEST");
+  out.push(["审核合并: dataAt匹配生效?", applied && r_ok.rejected===1]);
+  out.push(["审核合并: dataAt不匹配不生效?", notApplied && r_stale.stale===1]);
   console.table(out.map(o=>({检查:o[0],通过:o[1]})));
   return out.every(o=>o[1]);
 };
 
 /* 启动 */
 load(); loadCloud(); loadAi(); updateHeader(); renderDash();
+if(cloud.repo&&cloud.token&&cloud.pass) syncReviews(false); // 启动时静默拉取管理端审核结果
 </script>
 </body>
 </html>
