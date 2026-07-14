@@ -83,12 +83,30 @@ legend{font-size:14px;font-weight:700;color:var(--blue-d);padding:0 6px}
 .ck{display:inline-flex;align-items:center;gap:5px;margin:3px 10px 3px 0;font-size:14px;cursor:pointer}
 .searchbox{max-width:320px}
 .disabledbox{opacity:.55;pointer-events:none}
+.script.collapsed .sb,.script.collapsed .sn{display:none}
+.sigwrap{border:1px dashed var(--blue);border-radius:8px;background:#fff;overflow:hidden}
+canvas.sig{display:block;width:100%;height:180px;touch-action:none;cursor:crosshair}
+.thwrap{position:relative;display:inline-block;margin:4px}
+.thwrap img{width:96px;height:96px;object-fit:cover;border:1px solid var(--line);border-radius:8px;cursor:zoom-in;display:block}
+.thwrap .rm{position:absolute;top:-7px;right:-7px;background:var(--red);color:#fff;border:none;border-radius:50%;width:22px;height:22px;cursor:pointer;font-size:13px;line-height:1}
+.lightbox{position:fixed;inset:0;background:rgba(0,0,0,.82);display:flex;align-items:center;justify-content:center;z-index:60;cursor:zoom-out}
+.lightbox img{max-width:94vw;max-height:94vh;border-radius:6px}
+.advrow{display:flex;gap:8px;align-items:flex-start;padding:7px 6px;border-bottom:1px solid #eef0f3;font-size:13.5px;flex-wrap:wrap}
+.advrow:nth-child(even){background:#fafbfc}
+.advrow .no{color:var(--muted);flex:0 0 30px}
+.advrow .tx{flex:1 1 300px;min-width:220px}
+.advrow .tip{flex:1 1 320px;min-width:220px;color:#374151}
+.qrbox{text-align:center;padding:8px}
+.qrbox img{border:1px solid var(--line);border-radius:6px;background:#fff}
+#printArea{display:none;position:fixed;inset:0;background:#fff;z-index:70;overflow:auto;padding:34px 8%;line-height:1.9}
+#printArea.show{display:block}
+@media print{ body>*{display:none!important} #printArea{display:block!important;position:static;padding:0} #printArea .noprint{display:none!important} }
 </style>
 </head>
 <body>
 <header>
   <h1>老年人合理用药干预 · 药师工作台</h1>
-  <span class="sub">基于药物素养的精准用药教育干预（配套CRF V2.0 / 附件2话术方案）· 离线版 V1.0</span>
+  <span class="sub">基于药物素养的精准用药教育干预（配套CRF V2.0 / 附件2话术方案）· 离线版 V1.1</span>
   <span class="spacer"></span>
   <span class="sub" id="hdCenter"></span>
 </header>
@@ -102,7 +120,16 @@ legend{font-size:14px;font-weight:700;color:var(--blue-d);padding:0 6px}
 </nav>
 <main id="view"></main>
 <div class="toast" id="toast"></div>
+<div id="printArea"></div>
 
+<script>/* qrcode-generator v1.4.4 (MIT, Kazuhiko Arase) 内联以保持离线可用 */
+/**
+ * Minified by jsDelivr using Terser v5.37.0.
+ * Original file: /npm/qrcode-generator@1.4.4/qrcode.js
+ *
+ * Do NOT use SRI with dynamically generated files! More information: https://www.jsdelivr.com/using-sri-with-dynamic-files
+ */
+var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],f={},c=function(t,r){o=function(t){for(var r=new Array(t),e=0;e<t;e+=1){r[e]=new Array(t);for(var n=0;n<t;n+=1)r[e][n]=null}return r}(i=4*e+17),l(0,0),l(i-7,0),l(0,i-7),s(),h(),d(t,r),e>=7&&v(t),null==a&&(a=p(e,n,u)),w(a,r)},l=function(t,r){for(var e=-1;e<=7;e+=1)if(!(t+e<=-1||i<=t+e))for(var n=-1;n<=7;n+=1)r+n<=-1||i<=r+n||(o[t+e][r+n]=0<=e&&e<=6&&(0==n||6==n)||0<=n&&n<=6&&(0==e||6==e)||2<=e&&e<=4&&2<=n&&n<=4)},h=function(){for(var t=8;t<i-8;t+=1)null==o[t][6]&&(o[t][6]=t%2==0);for(var r=8;r<i-8;r+=1)null==o[6][r]&&(o[6][r]=r%2==0)},s=function(){for(var t=B.getPatternPosition(e),r=0;r<t.length;r+=1)for(var n=0;n<t.length;n+=1){var i=t[r],a=t[n];if(null==o[i][a])for(var u=-2;u<=2;u+=1)for(var f=-2;f<=2;f+=1)o[i+u][a+f]=-2==u||2==u||-2==f||2==f||0==u&&0==f}},v=function(t){for(var r=B.getBCHTypeNumber(e),n=0;n<18;n+=1){var a=!t&&1==(r>>n&1);o[Math.floor(n/3)][n%3+i-8-3]=a}for(n=0;n<18;n+=1){a=!t&&1==(r>>n&1);o[n%3+i-8-3][Math.floor(n/3)]=a}},d=function(t,r){for(var e=n<<3|r,a=B.getBCHTypeInfo(e),u=0;u<15;u+=1){var f=!t&&1==(a>>u&1);u<6?o[u][8]=f:u<8?o[u+1][8]=f:o[i-15+u][8]=f}for(u=0;u<15;u+=1){f=!t&&1==(a>>u&1);u<8?o[8][i-u-1]=f:u<9?o[8][15-u-1+1]=f:o[8][15-u-1]=f}o[i-8][8]=!t},w=function(t,r){for(var e=-1,n=i-1,a=7,u=0,f=B.getMaskFunction(r),c=i-1;c>0;c-=2)for(6==c&&(c-=1);;){for(var g=0;g<2;g+=1)if(null==o[n][c-g]){var l=!1;u<t.length&&(l=1==(t[u]>>>a&1)),f(n,c-g)&&(l=!l),o[n][c-g]=l,-1==(a-=1)&&(u+=1,a=7)}if((n+=e)<0||i<=n){n-=e,e=-e;break}}},p=function(t,r,e){for(var n=A.getRSBlocks(t,r),o=b(),i=0;i<e.length;i+=1){var a=e[i];o.put(a.getMode(),4),o.put(a.getLength(),B.getLengthInBits(a.getMode(),t)),a.write(o)}var u=0;for(i=0;i<n.length;i+=1)u+=n[i].dataCount;if(o.getLengthInBits()>8*u)throw"code length overflow. ("+o.getLengthInBits()+">"+8*u+")";for(o.getLengthInBits()+4<=8*u&&o.put(0,4);o.getLengthInBits()%8!=0;)o.putBit(!1);for(;!(o.getLengthInBits()>=8*u||(o.put(236,8),o.getLengthInBits()>=8*u));)o.put(17,8);return function(t,r){for(var e=0,n=0,o=0,i=new Array(r.length),a=new Array(r.length),u=0;u<r.length;u+=1){var f=r[u].dataCount,c=r[u].totalCount-f;n=Math.max(n,f),o=Math.max(o,c),i[u]=new Array(f);for(var g=0;g<i[u].length;g+=1)i[u][g]=255&t.getBuffer()[g+e];e+=f;var l=B.getErrorCorrectPolynomial(c),h=k(i[u],l.getLength()-1).mod(l);for(a[u]=new Array(l.getLength()-1),g=0;g<a[u].length;g+=1){var s=g+h.getLength()-a[u].length;a[u][g]=s>=0?h.getAt(s):0}}var v=0;for(g=0;g<r.length;g+=1)v+=r[g].totalCount;var d=new Array(v),w=0;for(g=0;g<n;g+=1)for(u=0;u<r.length;u+=1)g<i[u].length&&(d[w]=i[u][g],w+=1);for(g=0;g<o;g+=1)for(u=0;u<r.length;u+=1)g<a[u].length&&(d[w]=a[u][g],w+=1);return d}(o,n)};f.addData=function(t,r){var e=null;switch(r=r||"Byte"){case"Numeric":e=M(t);break;case"Alphanumeric":e=x(t);break;case"Byte":e=m(t);break;case"Kanji":e=L(t);break;default:throw"mode:"+r}u.push(e),a=null},f.isDark=function(t,r){if(t<0||i<=t||r<0||i<=r)throw t+","+r;return o[t][r]},f.getModuleCount=function(){return i},f.make=function(){if(e<1){for(var t=1;t<40;t++){for(var r=A.getRSBlocks(t,n),o=b(),i=0;i<u.length;i++){var a=u[i];o.put(a.getMode(),4),o.put(a.getLength(),B.getLengthInBits(a.getMode(),t)),a.write(o)}var g=0;for(i=0;i<r.length;i++)g+=r[i].dataCount;if(o.getLengthInBits()<=8*g)break}e=t}c(!1,function(){for(var t=0,r=0,e=0;e<8;e+=1){c(!0,e);var n=B.getLostPoint(f);(0==e||t>n)&&(t=n,r=e)}return r}())},f.createTableTag=function(t,r){t=t||2;var e="";e+='<table style="',e+=" border-width: 0px; border-style: none;",e+=" border-collapse: collapse;",e+=" padding: 0px; margin: "+(r=void 0===r?4*t:r)+"px;",e+='">',e+="<tbody>";for(var n=0;n<f.getModuleCount();n+=1){e+="<tr>";for(var o=0;o<f.getModuleCount();o+=1)e+='<td style="',e+=" border-width: 0px; border-style: none;",e+=" border-collapse: collapse;",e+=" padding: 0px; margin: 0px;",e+=" width: "+t+"px;",e+=" height: "+t+"px;",e+=" background-color: ",e+=f.isDark(n,o)?"#000000":"#ffffff",e+=";",e+='"/>';e+="</tr>"}return e+="</tbody>",e+="</table>"},f.createSvgTag=function(t,r,e,n){var o={};"object"==typeof arguments[0]&&(t=(o=arguments[0]).cellSize,r=o.margin,e=o.alt,n=o.title),t=t||2,r=void 0===r?4*t:r,(e="string"==typeof e?{text:e}:e||{}).text=e.text||null,e.id=e.text?e.id||"qrcode-description":null,(n="string"==typeof n?{text:n}:n||{}).text=n.text||null,n.id=n.text?n.id||"qrcode-title":null;var i,a,u,c,g=f.getModuleCount()*t+2*r,l="";for(c="l"+t+",0 0,"+t+" -"+t+",0 0,-"+t+"z ",l+='<svg version="1.1" xmlns="http://www.w3.org/2000/svg"',l+=o.scalable?"":' width="'+g+'px" height="'+g+'px"',l+=' viewBox="0 0 '+g+" "+g+'" ',l+=' preserveAspectRatio="xMinYMin meet"',l+=n.text||e.text?' role="img" aria-labelledby="'+y([n.id,e.id].join(" ").trim())+'"':"",l+=">",l+=n.text?'<title id="'+y(n.id)+'">'+y(n.text)+"</title>":"",l+=e.text?'<description id="'+y(e.id)+'">'+y(e.text)+"</description>":"",l+='<rect width="100%" height="100%" fill="white" cx="0" cy="0"/>',l+='<path d="',a=0;a<f.getModuleCount();a+=1)for(u=a*t+r,i=0;i<f.getModuleCount();i+=1)f.isDark(a,i)&&(l+="M"+(i*t+r)+","+u+c);return l+='" stroke="transparent" fill="black"/>',l+="</svg>"},f.createDataURL=function(t,r){t=t||2,r=void 0===r?4*t:r;var e=f.getModuleCount()*t+2*r,n=r,o=e-r;return I(e,e,(function(r,e){if(n<=r&&r<o&&n<=e&&e<o){var i=Math.floor((r-n)/t),a=Math.floor((e-n)/t);return f.isDark(a,i)?0:1}return 1}))},f.createImgTag=function(t,r,e){t=t||2,r=void 0===r?4*t:r;var n=f.getModuleCount()*t+2*r,o="";return o+="<img",o+=' src="',o+=f.createDataURL(t,r),o+='"',o+=' width="',o+=n,o+='"',o+=' height="',o+=n,o+='"',e&&(o+=' alt="',o+=y(e),o+='"'),o+="/>"};var y=function(t){for(var r="",e=0;e<t.length;e+=1){var n=t.charAt(e);switch(n){case"<":r+="&lt;";break;case">":r+="&gt;";break;case"&":r+="&amp;";break;case'"':r+="&quot;";break;default:r+=n}}return r};return f.createASCII=function(t,r){if((t=t||1)<2)return function(t){t=void 0===t?2:t;var r,e,n,o,i,a=1*f.getModuleCount()+2*t,u=t,c=a-t,g={"██":"█","█ ":"▀"," █":"▄","  ":" "},l={"██":"▀","█ ":"▀"," █":" ","  ":" "},h="";for(r=0;r<a;r+=2){for(n=Math.floor((r-u)/1),o=Math.floor((r+1-u)/1),e=0;e<a;e+=1)i="█",u<=e&&e<c&&u<=r&&r<c&&f.isDark(n,Math.floor((e-u)/1))&&(i=" "),u<=e&&e<c&&u<=r+1&&r+1<c&&f.isDark(o,Math.floor((e-u)/1))?i+=" ":i+="█",h+=t<1&&r+1>=c?l[i]:g[i];h+="\n"}return a%2&&t>0?h.substring(0,h.length-a-1)+Array(a+1).join("▀"):h.substring(0,h.length-1)}(r);t-=1,r=void 0===r?2*t:r;var e,n,o,i,a=f.getModuleCount()*t+2*r,u=r,c=a-r,g=Array(t+1).join("██"),l=Array(t+1).join("  "),h="",s="";for(e=0;e<a;e+=1){for(o=Math.floor((e-u)/t),s="",n=0;n<a;n+=1)i=1,u<=n&&n<c&&u<=e&&e<c&&f.isDark(o,Math.floor((n-u)/t))&&(i=0),s+=i?g:l;for(o=0;o<t;o+=1)h+=s+"\n"}return h.substring(0,h.length-1)},f.renderTo2dContext=function(t,r){r=r||2;for(var e=f.getModuleCount(),n=0;n<e;n++)for(var o=0;o<e;o++)t.fillStyle=f.isDark(n,o)?"black":"white",t.fillRect(n*r,o*r,r,r)},f};t.stringToBytes=(t.stringToBytesFuncs={default:function(t){for(var r=[],e=0;e<t.length;e+=1){var n=t.charCodeAt(e);r.push(255&n)}return r}}).default,t.createStringToBytes=function(t,r){var e=function(){for(var e=S(t),n=function(){var t=e.read();if(-1==t)throw"eof";return t},o=0,i={};;){var a=e.read();if(-1==a)break;var u=n(),f=n()<<8|n();i[String.fromCharCode(a<<8|u)]=f,o+=1}if(o!=r)throw o+" != "+r;return i}(),n="?".charCodeAt(0);return function(t){for(var r=[],o=0;o<t.length;o+=1){var i=t.charCodeAt(o);if(i<128)r.push(i);else{var a=e[t.charAt(o)];"number"==typeof a?(255&a)==a?r.push(a):(r.push(a>>>8),r.push(255&a)):r.push(n)}}return r}};var r,e,n,o,i,a=1,u=2,f=4,c=8,g={L:1,M:0,Q:3,H:2},l=0,h=1,s=2,v=3,d=4,w=5,p=6,y=7,B=(r=[[],[6,18],[6,22],[6,26],[6,30],[6,34],[6,22,38],[6,24,42],[6,26,46],[6,28,50],[6,30,54],[6,32,58],[6,34,62],[6,26,46,66],[6,26,48,70],[6,26,50,74],[6,30,54,78],[6,30,56,82],[6,30,58,86],[6,34,62,90],[6,28,50,72,94],[6,26,50,74,98],[6,30,54,78,102],[6,28,54,80,106],[6,32,58,84,110],[6,30,58,86,114],[6,34,62,90,118],[6,26,50,74,98,122],[6,30,54,78,102,126],[6,26,52,78,104,130],[6,30,56,82,108,134],[6,34,60,86,112,138],[6,30,58,86,114,142],[6,34,62,90,118,146],[6,30,54,78,102,126,150],[6,24,50,76,102,128,154],[6,28,54,80,106,132,158],[6,32,58,84,110,136,162],[6,26,54,82,110,138,166],[6,30,58,86,114,142,170]],e=1335,n=7973,i=function(t){for(var r=0;0!=t;)r+=1,t>>>=1;return r},(o={}).getBCHTypeInfo=function(t){for(var r=t<<10;i(r)-i(e)>=0;)r^=e<<i(r)-i(e);return 21522^(t<<10|r)},o.getBCHTypeNumber=function(t){for(var r=t<<12;i(r)-i(n)>=0;)r^=n<<i(r)-i(n);return t<<12|r},o.getPatternPosition=function(t){return r[t-1]},o.getMaskFunction=function(t){switch(t){case l:return function(t,r){return(t+r)%2==0};case h:return function(t,r){return t%2==0};case s:return function(t,r){return r%3==0};case v:return function(t,r){return(t+r)%3==0};case d:return function(t,r){return(Math.floor(t/2)+Math.floor(r/3))%2==0};case w:return function(t,r){return t*r%2+t*r%3==0};case p:return function(t,r){return(t*r%2+t*r%3)%2==0};case y:return function(t,r){return(t*r%3+(t+r)%2)%2==0};default:throw"bad maskPattern:"+t}},o.getErrorCorrectPolynomial=function(t){for(var r=k([1],0),e=0;e<t;e+=1)r=r.multiply(k([1,C.gexp(e)],0));return r},o.getLengthInBits=function(t,r){if(1<=r&&r<10)switch(t){case a:return 10;case u:return 9;case f:case c:return 8;default:throw"mode:"+t}else if(r<27)switch(t){case a:return 12;case u:return 11;case f:return 16;case c:return 10;default:throw"mode:"+t}else{if(!(r<41))throw"type:"+r;switch(t){case a:return 14;case u:return 13;case f:return 16;case c:return 12;default:throw"mode:"+t}}},o.getLostPoint=function(t){for(var r=t.getModuleCount(),e=0,n=0;n<r;n+=1)for(var o=0;o<r;o+=1){for(var i=0,a=t.isDark(n,o),u=-1;u<=1;u+=1)if(!(n+u<0||r<=n+u))for(var f=-1;f<=1;f+=1)o+f<0||r<=o+f||0==u&&0==f||a==t.isDark(n+u,o+f)&&(i+=1);i>5&&(e+=3+i-5)}for(n=0;n<r-1;n+=1)for(o=0;o<r-1;o+=1){var c=0;t.isDark(n,o)&&(c+=1),t.isDark(n+1,o)&&(c+=1),t.isDark(n,o+1)&&(c+=1),t.isDark(n+1,o+1)&&(c+=1),0!=c&&4!=c||(e+=3)}for(n=0;n<r;n+=1)for(o=0;o<r-6;o+=1)t.isDark(n,o)&&!t.isDark(n,o+1)&&t.isDark(n,o+2)&&t.isDark(n,o+3)&&t.isDark(n,o+4)&&!t.isDark(n,o+5)&&t.isDark(n,o+6)&&(e+=40);for(o=0;o<r;o+=1)for(n=0;n<r-6;n+=1)t.isDark(n,o)&&!t.isDark(n+1,o)&&t.isDark(n+2,o)&&t.isDark(n+3,o)&&t.isDark(n+4,o)&&!t.isDark(n+5,o)&&t.isDark(n+6,o)&&(e+=40);var g=0;for(o=0;o<r;o+=1)for(n=0;n<r;n+=1)t.isDark(n,o)&&(g+=1);return e+=Math.abs(100*g/r/r-50)/5*10},o),C=function(){for(var t=new Array(256),r=new Array(256),e=0;e<8;e+=1)t[e]=1<<e;for(e=8;e<256;e+=1)t[e]=t[e-4]^t[e-5]^t[e-6]^t[e-8];for(e=0;e<255;e+=1)r[t[e]]=e;var n={glog:function(t){if(t<1)throw"glog("+t+")";return r[t]},gexp:function(r){for(;r<0;)r+=255;for(;r>=256;)r-=255;return t[r]}};return n}();function k(t,r){if(void 0===t.length)throw t.length+"/"+r;var e=function(){for(var e=0;e<t.length&&0==t[e];)e+=1;for(var n=new Array(t.length-e+r),o=0;o<t.length-e;o+=1)n[o]=t[o+e];return n}(),n={getAt:function(t){return e[t]},getLength:function(){return e.length},multiply:function(t){for(var r=new Array(n.getLength()+t.getLength()-1),e=0;e<n.getLength();e+=1)for(var o=0;o<t.getLength();o+=1)r[e+o]^=C.gexp(C.glog(n.getAt(e))+C.glog(t.getAt(o)));return k(r,0)},mod:function(t){if(n.getLength()-t.getLength()<0)return n;for(var r=C.glog(n.getAt(0))-C.glog(t.getAt(0)),e=new Array(n.getLength()),o=0;o<n.getLength();o+=1)e[o]=n.getAt(o);for(o=0;o<t.getLength();o+=1)e[o]^=C.gexp(C.glog(t.getAt(o))+r);return k(e,0).mod(t)}};return n}var A=function(){var t=[[1,26,19],[1,26,16],[1,26,13],[1,26,9],[1,44,34],[1,44,28],[1,44,22],[1,44,16],[1,70,55],[1,70,44],[2,35,17],[2,35,13],[1,100,80],[2,50,32],[2,50,24],[4,25,9],[1,134,108],[2,67,43],[2,33,15,2,34,16],[2,33,11,2,34,12],[2,86,68],[4,43,27],[4,43,19],[4,43,15],[2,98,78],[4,49,31],[2,32,14,4,33,15],[4,39,13,1,40,14],[2,121,97],[2,60,38,2,61,39],[4,40,18,2,41,19],[4,40,14,2,41,15],[2,146,116],[3,58,36,2,59,37],[4,36,16,4,37,17],[4,36,12,4,37,13],[2,86,68,2,87,69],[4,69,43,1,70,44],[6,43,19,2,44,20],[6,43,15,2,44,16],[4,101,81],[1,80,50,4,81,51],[4,50,22,4,51,23],[3,36,12,8,37,13],[2,116,92,2,117,93],[6,58,36,2,59,37],[4,46,20,6,47,21],[7,42,14,4,43,15],[4,133,107],[8,59,37,1,60,38],[8,44,20,4,45,21],[12,33,11,4,34,12],[3,145,115,1,146,116],[4,64,40,5,65,41],[11,36,16,5,37,17],[11,36,12,5,37,13],[5,109,87,1,110,88],[5,65,41,5,66,42],[5,54,24,7,55,25],[11,36,12,7,37,13],[5,122,98,1,123,99],[7,73,45,3,74,46],[15,43,19,2,44,20],[3,45,15,13,46,16],[1,135,107,5,136,108],[10,74,46,1,75,47],[1,50,22,15,51,23],[2,42,14,17,43,15],[5,150,120,1,151,121],[9,69,43,4,70,44],[17,50,22,1,51,23],[2,42,14,19,43,15],[3,141,113,4,142,114],[3,70,44,11,71,45],[17,47,21,4,48,22],[9,39,13,16,40,14],[3,135,107,5,136,108],[3,67,41,13,68,42],[15,54,24,5,55,25],[15,43,15,10,44,16],[4,144,116,4,145,117],[17,68,42],[17,50,22,6,51,23],[19,46,16,6,47,17],[2,139,111,7,140,112],[17,74,46],[7,54,24,16,55,25],[34,37,13],[4,151,121,5,152,122],[4,75,47,14,76,48],[11,54,24,14,55,25],[16,45,15,14,46,16],[6,147,117,4,148,118],[6,73,45,14,74,46],[11,54,24,16,55,25],[30,46,16,2,47,17],[8,132,106,4,133,107],[8,75,47,13,76,48],[7,54,24,22,55,25],[22,45,15,13,46,16],[10,142,114,2,143,115],[19,74,46,4,75,47],[28,50,22,6,51,23],[33,46,16,4,47,17],[8,152,122,4,153,123],[22,73,45,3,74,46],[8,53,23,26,54,24],[12,45,15,28,46,16],[3,147,117,10,148,118],[3,73,45,23,74,46],[4,54,24,31,55,25],[11,45,15,31,46,16],[7,146,116,7,147,117],[21,73,45,7,74,46],[1,53,23,37,54,24],[19,45,15,26,46,16],[5,145,115,10,146,116],[19,75,47,10,76,48],[15,54,24,25,55,25],[23,45,15,25,46,16],[13,145,115,3,146,116],[2,74,46,29,75,47],[42,54,24,1,55,25],[23,45,15,28,46,16],[17,145,115],[10,74,46,23,75,47],[10,54,24,35,55,25],[19,45,15,35,46,16],[17,145,115,1,146,116],[14,74,46,21,75,47],[29,54,24,19,55,25],[11,45,15,46,46,16],[13,145,115,6,146,116],[14,74,46,23,75,47],[44,54,24,7,55,25],[59,46,16,1,47,17],[12,151,121,7,152,122],[12,75,47,26,76,48],[39,54,24,14,55,25],[22,45,15,41,46,16],[6,151,121,14,152,122],[6,75,47,34,76,48],[46,54,24,10,55,25],[2,45,15,64,46,16],[17,152,122,4,153,123],[29,74,46,14,75,47],[49,54,24,10,55,25],[24,45,15,46,46,16],[4,152,122,18,153,123],[13,74,46,32,75,47],[48,54,24,14,55,25],[42,45,15,32,46,16],[20,147,117,4,148,118],[40,75,47,7,76,48],[43,54,24,22,55,25],[10,45,15,67,46,16],[19,148,118,6,149,119],[18,75,47,31,76,48],[34,54,24,34,55,25],[20,45,15,61,46,16]],r=function(t,r){var e={};return e.totalCount=t,e.dataCount=r,e},e={};return e.getRSBlocks=function(e,n){var o=function(r,e){switch(e){case g.L:return t[4*(r-1)+0];case g.M:return t[4*(r-1)+1];case g.Q:return t[4*(r-1)+2];case g.H:return t[4*(r-1)+3];default:return}}(e,n);if(void 0===o)throw"bad rs block @ typeNumber:"+e+"/errorCorrectionLevel:"+n;for(var i=o.length/3,a=[],u=0;u<i;u+=1)for(var f=o[3*u+0],c=o[3*u+1],l=o[3*u+2],h=0;h<f;h+=1)a.push(r(c,l));return a},e}(),b=function(){var t=[],r=0,e={getBuffer:function(){return t},getAt:function(r){var e=Math.floor(r/8);return 1==(t[e]>>>7-r%8&1)},put:function(t,r){for(var n=0;n<r;n+=1)e.putBit(1==(t>>>r-n-1&1))},getLengthInBits:function(){return r},putBit:function(e){var n=Math.floor(r/8);t.length<=n&&t.push(0),e&&(t[n]|=128>>>r%8),r+=1}};return e},M=function(t){var r=a,e=t,n={getMode:function(){return r},getLength:function(t){return e.length},write:function(t){for(var r=e,n=0;n+2<r.length;)t.put(o(r.substring(n,n+3)),10),n+=3;n<r.length&&(r.length-n==1?t.put(o(r.substring(n,n+1)),4):r.length-n==2&&t.put(o(r.substring(n,n+2)),7))}},o=function(t){for(var r=0,e=0;e<t.length;e+=1)r=10*r+i(t.charAt(e));return r},i=function(t){if("0"<=t&&t<="9")return t.charCodeAt(0)-"0".charCodeAt(0);throw"illegal char :"+t};return n},x=function(t){var r=u,e=t,n={getMode:function(){return r},getLength:function(t){return e.length},write:function(t){for(var r=e,n=0;n+1<r.length;)t.put(45*o(r.charAt(n))+o(r.charAt(n+1)),11),n+=2;n<r.length&&t.put(o(r.charAt(n)),6)}},o=function(t){if("0"<=t&&t<="9")return t.charCodeAt(0)-"0".charCodeAt(0);if("A"<=t&&t<="Z")return t.charCodeAt(0)-"A".charCodeAt(0)+10;switch(t){case" ":return 36;case"$":return 37;case"%":return 38;case"*":return 39;case"+":return 40;case"-":return 41;case".":return 42;case"/":return 43;case":":return 44;default:throw"illegal char :"+t}};return n},m=function(r){var e=f,n=t.stringToBytes(r),o={getMode:function(){return e},getLength:function(t){return n.length},write:function(t){for(var r=0;r<n.length;r+=1)t.put(n[r],8)}};return o},L=function(r){var e=c,n=t.stringToBytesFuncs.SJIS;if(!n)throw"sjis not supported.";!function(){var t=n("友");if(2!=t.length||38726!=(t[0]<<8|t[1]))throw"sjis not supported."}();var o=n(r),i={getMode:function(){return e},getLength:function(t){return~~(o.length/2)},write:function(t){for(var r=o,e=0;e+1<r.length;){var n=(255&r[e])<<8|255&r[e+1];if(33088<=n&&n<=40956)n-=33088;else{if(!(57408<=n&&n<=60351))throw"illegal char at "+(e+1)+"/"+n;n-=49472}n=192*(n>>>8&255)+(255&n),t.put(n,13),e+=2}if(e<r.length)throw"illegal char at "+(e+1)}};return i},D=function(){var t=[],r={writeByte:function(r){t.push(255&r)},writeShort:function(t){r.writeByte(t),r.writeByte(t>>>8)},writeBytes:function(t,e,n){e=e||0,n=n||t.length;for(var o=0;o<n;o+=1)r.writeByte(t[o+e])},writeString:function(t){for(var e=0;e<t.length;e+=1)r.writeByte(t.charCodeAt(e))},toByteArray:function(){return t},toString:function(){var r="";r+="[";for(var e=0;e<t.length;e+=1)e>0&&(r+=","),r+=t[e];return r+="]"}};return r},S=function(t){var r=t,e=0,n=0,o=0,i={read:function(){for(;o<8;){if(e>=r.length){if(0==o)return-1;throw"unexpected end of file./"+o}var t=r.charAt(e);if(e+=1,"="==t)return o=0,-1;t.match(/^\s$/)||(n=n<<6|a(t.charCodeAt(0)),o+=6)}var i=n>>>o-8&255;return o-=8,i}},a=function(t){if(65<=t&&t<=90)return t-65;if(97<=t&&t<=122)return t-97+26;if(48<=t&&t<=57)return t-48+52;if(43==t)return 62;if(47==t)return 63;throw"c:"+t};return i},I=function(t,r,e){for(var n=function(t,r){var e=t,n=r,o=new Array(t*r),i={setPixel:function(t,r,n){o[r*e+t]=n},write:function(t){t.writeString("GIF87a"),t.writeShort(e),t.writeShort(n),t.writeByte(128),t.writeByte(0),t.writeByte(0),t.writeByte(0),t.writeByte(0),t.writeByte(0),t.writeByte(255),t.writeByte(255),t.writeByte(255),t.writeString(","),t.writeShort(0),t.writeShort(0),t.writeShort(e),t.writeShort(n),t.writeByte(0);var r=a(2);t.writeByte(2);for(var o=0;r.length-o>255;)t.writeByte(255),t.writeBytes(r,o,255),o+=255;t.writeByte(r.length-o),t.writeBytes(r,o,r.length-o),t.writeByte(0),t.writeString(";")}},a=function(t){for(var r=1<<t,e=1+(1<<t),n=t+1,i=u(),a=0;a<r;a+=1)i.add(String.fromCharCode(a));i.add(String.fromCharCode(r)),i.add(String.fromCharCode(e));var f,c,g,l=D(),h=(f=l,c=0,g=0,{write:function(t,r){if(t>>>r!=0)throw"length over";for(;c+r>=8;)f.writeByte(255&(t<<c|g)),r-=8-c,t>>>=8-c,g=0,c=0;g|=t<<c,c+=r},flush:function(){c>0&&f.writeByte(g)}});h.write(r,n);var s=0,v=String.fromCharCode(o[s]);for(s+=1;s<o.length;){var d=String.fromCharCode(o[s]);s+=1,i.contains(v+d)?v+=d:(h.write(i.indexOf(v),n),i.size()<4095&&(i.size()==1<<n&&(n+=1),i.add(v+d)),v=d)}return h.write(i.indexOf(v),n),h.write(e,n),h.flush(),l.toByteArray()},u=function(){var t={},r=0,e={add:function(n){if(e.contains(n))throw"dup key:"+n;t[n]=r,r+=1},size:function(){return r},indexOf:function(r){return t[r]},contains:function(r){return void 0!==t[r]}};return e};return i}(t,r),o=0;o<r;o+=1)for(var i=0;i<t;i+=1)n.setPixel(i,o,e(i,o));var a=D();n.write(a);for(var u=function(){var t=0,r=0,e=0,n="",o={},i=function(t){n+=String.fromCharCode(a(63&t))},a=function(t){if(t<0);else{if(t<26)return 65+t;if(t<52)return t-26+97;if(t<62)return t-52+48;if(62==t)return 43;if(63==t)return 47}throw"n:"+t};return o.writeByte=function(n){for(t=t<<8|255&n,r+=8,e+=1;r>=6;)i(t>>>r-6),r-=6},o.flush=function(){if(r>0&&(i(t<<6-r),t=0,r=0),e%3!=0)for(var o=3-e%3,a=0;a<o;a+=1)n+="="},o.toString=function(){return n},o}(),f=a.toByteArray(),c=0;c<f.length;c+=1)u.writeByte(f[c]);return u.flush(),"data:image/gif;base64,"+u};return t}();qrcode.stringToBytesFuncs["UTF-8"]=function(t){return function(t){for(var r=[],e=0;e<t.length;e++){var n=t.charCodeAt(e);n<128?r.push(n):n<2048?r.push(192|n>>6,128|63&n):n<55296||n>=57344?r.push(224|n>>12,128|n>>6&63,128|63&n):(e++,n=65536+((1023&n)<<10|1023&t.charCodeAt(e)),r.push(240|n>>18,128|n>>12&63,128|n>>6&63,128|63&n))}return r}(t)},function(t){"function"==typeof define&&define.amd?define([],t):"object"==typeof exports&&(module.exports=t())}((function(){return qrcode}));</script>
 <script>
 /* =====================================================================
    数据定义（与《研究病例记录表》V2.0 及《附件2 干预方案与话术》一致）
@@ -199,6 +226,73 @@ const DIM_TIPS = {
  "自我药疗风险行为":"任何加量、换药、停药先咨询医师药师；定期清理过期药；不适及时报告不硬扛。〔③④〕",
  "使用药品说明书的能力":"教会重点看四处：用法用量、禁忌、不良反应、注意事项；看不懂就问药师。〔②〕",
 };
+
+/* 逐题干预建议（与题号1-41一一对应；面向患者的可执行白话，工作台与患者端共用口径） */
+const ITEM_TIPS = [
+ "记住“能口服不打针，能打针不输液”。看病时不主动要求输液，医生说吃药能治就配合吃药。",
+ "注射的药直接进血管，风险反而比口服高。不要觉得打针输液更保险，按医生处方来即可。",
+ "药的安全性和价格无关。按医生处方用药，不自行买贵药替换。",
+ "对症才有效。通过一致性评价的仿制药与原研药疗效相当，遵医嘱选择即可，不必只认贵药。",
+ "选药不看广告和名气，看是否对症。到正规医院、药店购药，拿不准就问药师。",
+ "药不是越多越好，重复用药更伤身。想加任何药，先把在吃的药单给医生或药师看。",
+ "吃多久由医生定，到了疗程就复诊。不自行延长“巩固巩固”。",
+ "保健品不是药，不能治病。正规药一片都不能因为吃了保健品而停。",
+ "吃保健品也不能减药量。想调整药量，必须先问医生。",
+ "吃药只用温开水送服。牛奶、咖啡、浓茶、果汁都可能影响药效。",
+ "几种药能不能一起吃要问医生药师。就诊时带上完整用药清单。",
+ "感冒发烧多是病毒引起，抗菌药（头孢、阿莫西林等）无效。先就诊，不自行吃抗菌药。",
+ "抗菌药不是“消炎药”。家里存的头孢、阿莫西林别随便当消炎药吃，一定凭处方使用。",
+ "抗菌药对病毒无效，也不是万能。用不用、用哪种，听医生的。",
+ "身边人生病时自己先吃抗菌药“预防”，没有用还伤身，不要这样做。",
+ "非处方药也有不良反应。吃前看说明书“不良反应”一栏，有不舒服及时告诉药师。",
+ "看说明书“贮藏”一栏：写“冷藏”的放冰箱2～8℃（如未开封的胰岛素），写“阴凉处”的别放暖气旁。",
+ "写“遮光”的药放在原包装、抽屉或药箱里，不要摊在窗台等太阳晒得到的地方。",
+ "孩子不能随便吃减量的成人药。务必用儿童剂型，并咨询医生或药师。",
+ "年纪大了要不要减量，由医生根据肝肾功能决定，千万不要自己减。",
+ "家人备孕、怀孕、哺乳期间用任何药，先看说明书“孕妇及哺乳期妇女用药”，或咨询医生药师。",
+ "疫苗是最省钱、最有效的防病办法。留意社区通知，按时接种流感疫苗、肺炎疫苗。",
+ "该不该吃药拿不准时问药师，免费：医院用药咨询窗口、社区药师、患者微信群都可以。",
+ "怎么吃、饭前饭后、能不能掰开，都可以问药师，不要自己猜。",
+ "家里有孕期哺乳期的人用药，先查说明书“禁忌”和“特殊人群”，或直接问医生药师。",
+ "不凭老经验和广告买药。买药去正规药店，先咨询执业药师。",
+ "看病时把症状说清楚就好，用什么药让医生决定，不点名要药。",
+ "药店购药多问一句“有执业药师吗”，营业员推荐的贵药、保健品不必照单全收。",
+ "吃西药期间想加中药，先把药名告诉医生或药师，确认不“打架”再吃。",
+ "每3个月清一次家庭药箱，过期药坚决扔掉，一片也不吃。",
+ "写有“缓释”“控释”“肠溶”的药不能掰、不能碾。咽不下时问药师有没有替代办法。",
+ "几种药能否一起吃、要不要错开时间，先问医生药师，不自己混着吃。",
+ "感觉没效果别自己换药停药。带上监测记录去复诊，让医生调整。",
+ "首次吃药不加倍；漏服了也不补双倍。具体怎么补服，把药名告诉药师问清楚。",
+ "病好了或疗程到了，按医嘱停药复诊，不自行“多吃几天巩固”。",
+ "吃药后有不舒服，先打电话或在群里联系药师、医生，不要只是自己停药不管。",
+ "每种新药到手，先花三分钟看说明书“用法用量”。看不清让家人念，或拍照发给药师。",
+ "吃药前看一眼“不良反应”，心里有数不慌张；出现类似情况及时联系药师。",
+ "看“注意事项”：能不能喝酒、影不影响开车，提前知道，避免出事。",
+ "胰岛素笔、吸入剂等带装置的药，用前请药师示范一遍，照说明书步骤操作。",
+ "用药拿不准就问药师：用药咨询电话、咨询窗口、患者微信群都可以，免费。",
+];
+/* AMRS 逐题改善提示（对计分后≥3分的条目给出，供患者端使用） */
+const AMRS_TIPS = [
+ "设手机闹钟或用一周分装药盒，把药放在饭桌等显眼处，防止忘服。",
+ "不想吃药时先给药师打个电话说说想法，不要直接停药。",
+ "药还剩一周的量就去开药，可在日历上做个记号。",
+ "定一个固定的“开药日”，请家人帮着提醒，避免断药。",
+ "看医生当天也照常吃药，除非医生提前告诉您需要停。",
+ "感觉症状好转说明药在起效，更要按时吃；想调整要听医生的。",
+ "身体不舒服时先联系医生或药师，不要自己不吃药。",
+ "把吃药和固定习惯绑在一起，比如早饭后、睡前刷牙后，就不容易疏忽。",
+ "任何加量、减量都先问医生，不自己调剂量。",
+ "用带早、中、晚格子的药盒，一眼就能看出这顿吃没吃。",
+ "药费有困难就告诉医生药师，可以商量换成报销范围内的等效药，别硬扛着断药。",
+ "学会提前一周计划开药，别等药吃完了才想起来。",
+];
+/* 条目干预分级：1~2分强力干预，3~4分普通干预，5分不干预 */
+function adviceLevel(v){ return v<=2?0:(v<=4?1:2); }
+const ADV_META = [
+ {name:"强力干预",cls:"low"},
+ {name:"普通干预",cls:"mid"},
+ {name:"不干预",cls:"good"},
+];
 
 const INTERVENTIONS = ["①药物素养知识教育","②合理用药技能提升","③药物不良反应顾虑教育","④用药错误观念纠正","⑤调整服药时间","⑥调整服药顺序或服药间隔","⑦增加用药提醒","⑧其他干预措施"];
 
@@ -383,6 +477,161 @@ function fuStatus(p, which){
 }
 
 /* =====================================================================
+   通用组件：折叠话术卡 / 电子签字板 / 照片(IndexedDB) / 二维码 / 签字页打印
+===================================================================== */
+function scriptBox(id, open){
+  const s = SCRIPTS.find(x=>x.id===id); if(!s) return "";
+  return `<div class="script ${open?"":"collapsed"}" id="sbox_${id}">
+    <div class="sh"><b>${s.id}　${esc(s.title)}</b>
+    <span class="row" style="gap:6px">
+      <button class="btn sm sec" id="sbtn_${id}" onclick="toggleSbox('${id}')">${open?"收起话术":"查看话术"}</button>
+      <button class="btn sm" onclick="copyScript('${s.id}')">一键复制</button></span></div>
+    <div class="sb">${esc(s.body)}</div>
+    ${s.note?`<div class="sn">〔药师注意〕${esc(s.note)}</div>`:""}</div>`;
+}
+function toggleSbox(id){
+  const el=document.getElementById("sbox_"+id); if(!el) return;
+  el.classList.toggle("collapsed");
+  const b=document.getElementById("sbtn_"+id);
+  if(b) b.textContent = el.classList.contains("collapsed")?"查看话术":"收起话术";
+}
+
+/* ---- 电子签字板 ---- */
+function initSigPad(){
+  const cv=document.getElementById("sigpad"); if(!cv) return;
+  if(!cv.clientWidth){ requestAnimationFrame(initSigPad); return; } // 等待布局完成再初始化
+  const dpr=window.devicePixelRatio||1, w=cv.clientWidth, h=180;
+  cv.width=w*dpr; cv.height=h*dpr;
+  const ctx=cv.getContext("2d"); ctx.scale(dpr,dpr);
+  ctx.lineWidth=2.5; ctx.lineCap="round"; ctx.lineJoin="round"; ctx.strokeStyle="#111827";
+  if(enr && sigValid(enr.consent.sig)){ const img=new Image(); img.onload=()=>ctx.drawImage(img,0,0,w,h); img.src=enr.consent.sig; }
+  let drawing=false, moved=false;
+  cv.onpointerdown=e=>{ drawing=true; moved=false; try{cv.setPointerCapture(e.pointerId);}catch(x){}
+    ctx.beginPath(); ctx.moveTo(e.offsetX,e.offsetY); e.preventDefault(); };
+  cv.onpointermove=e=>{ if(!drawing) return; moved=true; ctx.lineTo(e.offsetX,e.offsetY); ctx.stroke(); e.preventDefault(); };
+  const end=()=>{ if(!drawing) return; drawing=false;
+    if(moved && cv.width>0) enr.consent.sig=cv.toDataURL("image/png"); };
+  cv.onpointerup=end; cv.onpointercancel=end; cv.onpointerleave=end;
+}
+function sigValid(sig){ return typeof sig==="string" && sig.startsWith("data:image/png") && sig.length>500; }
+function clearSig(){ if(enr) enr.consent.sig=null; initSigPad(); }
+
+/* ---- 照片：压缩 + IndexedDB（不占用 localStorage 配额） ---- */
+const MAX_PHOTOS=5;
+function idbOpen(){
+  return new Promise((res,rej)=>{
+    const r=indexedDB.open("ysgzt_db",1);
+    r.onupgradeneeded=()=>{ r.result.createObjectStore("photos"); };
+    r.onsuccess=()=>res(r.result); r.onerror=()=>rej(r.error);
+  });
+}
+async function photosGet(pid){
+  try{ const db=await idbOpen();
+    return await new Promise(res=>{ const q=db.transaction("photos").objectStore("photos").get(pid);
+      q.onsuccess=()=>res(q.result||[]); q.onerror=()=>res([]); });
+  }catch(e){ return []; }
+}
+async function photosSet(pid,arr){
+  try{ const db=await idbOpen();
+    await new Promise((res,rej)=>{ const t=db.transaction("photos","readwrite");
+      t.objectStore("photos").put(arr,pid); t.oncomplete=res; t.onerror=()=>rej(t.error); });
+  }catch(e){ toast("照片保存失败："+e.message); }
+}
+async function photosDel(pid){
+  try{ const db=await idbOpen();
+    await new Promise(res=>{ const t=db.transaction("photos","readwrite");
+      t.objectStore("photos").delete(pid); t.oncomplete=res; t.onerror=res; });
+  }catch(e){}
+}
+function compressImage(file){
+  return new Promise((res,rej)=>{
+    const img=new Image();
+    img.onload=()=>{ const m=1280; let w=img.width,h=img.height;
+      const k=Math.min(1,m/Math.max(w,h)); w=Math.round(w*k); h=Math.round(h*k);
+      const c=document.createElement("canvas"); c.width=w; c.height=h;
+      c.getContext("2d").drawImage(img,0,0,w,h);
+      URL.revokeObjectURL(img.src); res(c.toDataURL("image/jpeg",0.6)); };
+    img.onerror=()=>{ URL.revokeObjectURL(img.src); rej(new Error("图片读取失败")); };
+    img.src=URL.createObjectURL(file);
+  });
+}
+function showImg(src){
+  const d=document.createElement("div"); d.className="lightbox";
+  d.innerHTML=`<img src="${src}">`; d.onclick=()=>d.remove();
+  document.body.appendChild(d);
+}
+function thumbsHtml(arr, rmFn){
+  if(!arr.length) return `<p class="muted">暂无照片。</p>`;
+  return arr.map((src,i)=>`<span class="thwrap"><img src="${src}" onclick="showImg(this.src)">
+    ${rmFn?`<button class="rm" title="删除" onclick="${rmFn}(${i})">×</button>`:""}</span>`).join("");
+}
+
+/* ---- 患者结果二维码 ---- */
+const PATIENT_URL="https://fsclyx.github.io/yaoshi-gongzuotai/patient.html";
+function b64url(s){ return btoa(unescape(encodeURIComponent(s))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,""); }
+function unb64url(s){ s=s.replace(/-/g,"+").replace(/_/g,"/"); while(s.length%4)s+="="; return decodeURIComponent(escape(atob(s))); }
+function qrLink(code,initials,date,lit,amrs){
+  const s=state.settings;
+  const o={c:code,i:initials,d:date,L:lit.join(""),A:(amrs||[]).join(""),n:s.centerName||"",p:s.phone||""};
+  return PATIENT_URL+"#1"+b64url(JSON.stringify(o));
+}
+function qrBoxHtml(link,label){
+  let img="";
+  try{ const qr=qrcode(0,"M"); qr.addData(link); qr.make(); img=qr.createImgTag(4,10); }
+  catch(e){ return `<p class="muted">二维码生成失败：${esc(e.message)}</p>`; }
+  return `<div class="qrbox">${img}
+    <p style="margin-top:6px"><b>${label||"患者结果二维码"}</b></p>
+    <p class="muted" style="max-width:420px;margin:4px auto">请患者用手机<b>拍下此二维码</b>，回家后用微信“扫一扫”扫描照片即可查看自己的评估结果和改进建议（需手机联网）。结果页不含姓名等身份信息。</p></div>`;
+}
+
+/* ---- 逐条干预建议（41题，1~2分强力干预 / 3~4分普通干预 / 5分不干预） ---- */
+function itemAdviceHtml(vals){
+  const rows=vals.map((v,i)=>({no:LIT_ITEMS[i][0],text:LIT_ITEMS[i][1],v,lv:adviceLevel(v)}));
+  rows.sort((a,b)=> a.lv-b.lv || a.v-b.v || a.no-b.no);
+  const cnt=[0,0,0]; rows.forEach(r=>cnt[r.lv]++);
+  return `<p>系统按条目得分自动分级：<span class="tag low">强力干预 ${cnt[0]} 条</span>
+    <span class="tag mid">普通干预 ${cnt[1]} 条</span>
+    <span class="tag good">不干预 ${cnt[2]} 条</span>
+    <span class="muted">（1~2分强力干预，3~4分普通干预，5分不干预）</span></p>
+  <div>${rows.map(r=>`<div class="advrow">
+    <span class="no">${r.no}.</span>
+    <span class="tx">${esc(r.text)}</span>
+    <span style="flex:0 0 96px"><span class="tag ${ADV_META[r.lv].cls}">${r.v}分·${ADV_META[r.lv].name}</span></span>
+    <span class="tip">${r.lv===2?"已掌握，继续保持。":esc(ITEM_TIPS[r.no-1])}</span></div>`).join("")}</div>`;
+}
+
+/* ---- 知情同意签字页（查看/打印） ---- */
+function consentPageHtml(p){
+  const s=state.settings, c=p.consent||{};
+  const sigPart = c.mode==="electronic" && c.sig
+    ? `<img src="${c.sig}" style="height:90px;border-bottom:1px solid #333">`
+    : `<span style="color:#555">（已签署纸质版知情同意书，纸质件归档保存）</span>`;
+  return `
+  <div style="max-width:640px;margin:0 auto;font-size:15.5px">
+    <h2 style="text-align:center;margin-bottom:6px">知情同意书 · 签署页</h2>
+    <p style="text-align:center;color:#555;margin-bottom:18px">老年人合理用药干预研究（基于药物素养的精准用药教育干预）</p>
+    <p>受试者编号：<b>${esc(p.code)}</b>　姓名缩写：<b>${esc(p.initials)}</b></p>
+    <p>分中心：${esc(s.centerName||"")}（中心号 ${esc(s.centerNo||"")}）　研究药师：${esc(s.pharmacist||"")}</p>
+    <p style="margin:14px 0;text-indent:2em">本人已听取研究药师对本项目的目的、内容、参加流程（问卷评估、用药指导、微信群健康教育及第1、3个月随访）、获益与风险、个人信息保密措施及自愿参加原则的完整说明（按标准化话术A1告知），我的疑问均已得到解答。本人理解并<b>自愿参加</b>本项目，知悉可随时退出且不影响正常诊疗。</p>
+    <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-top:34px;flex-wrap:wrap;gap:16px">
+      <div>受试者签名：${sigPart}</div>
+      <div>签署日期：<b>${esc(c.date||"")}</b></div>
+    </div>
+    <div style="margin-top:26px">药师（见证人）：${esc(s.pharmacist||"＿＿＿＿")}　日期：${esc(c.date||"")}</div>
+    <div class="noprint" style="margin-top:34px;text-align:center">
+      <button class="btn" onclick="window.print()">打印本页</button>
+      <button class="btn sec" onclick="document.getElementById('printArea').classList.remove('show')">关闭</button>
+    </div>
+  </div>`;
+}
+function viewConsent(pid){
+  const p=state.patients.find(x=>x.id===pid); if(!p) return;
+  if(!p.consent){ toast("该患者为旧版录入，无电子知情同意记录"); return; }
+  const pa=document.getElementById("printArea");
+  pa.innerHTML=consentPageHtml(p); pa.classList.add("show");
+}
+
+/* =====================================================================
    视图路由
 ===================================================================== */
 const view = document.getElementById("view");
@@ -457,7 +706,7 @@ function renderDash(){
       <button class="btn sec" onclick="go('data')">导出数据</button>
       <a class="btn sec" href="https://fsclyx.github.io/yaoshi-gongzuotai/%E8%8D%AF%E5%B8%88%E5%B7%A5%E4%BD%9C%E5%8F%B0%E4%BD%BF%E7%94%A8%E6%89%8B%E5%86%8C.docx" target="_blank">下载使用手册</a>
     </div>
-    <p class="muted" style="margin-top:8px">流程：知情同意（A1）→ 电子量表（自动计分分层）→ 干预处方（B类话术）→ 邀请入群（A3）→ 1/3个月随访（D1/D2）。</p>
+    <p class="muted" style="margin-top:8px">入组7步（与系统一一对应）：①知情同意（A1+电子签）→ ②基本信息 → ③用药清单（录入/拍照）→ ④AMRS → ⑤素养量表（A2）→ ⑥结果与干预处方（逐条建议+患者二维码+B类话术）→ ⑦入群（A3）保存；随访 D1/D2。</p>
   </div>`;
 }
 
@@ -488,61 +737,158 @@ function filterP(){
 
 /* ---------------- 新增入组向导 ---------------- */
 let enr = null;
+const ENR_STEPS = ["① 知情同意","② 基本信息","③ 用药清单","④ AMRS依从性","⑤ 素养量表","⑥ 结果与干预","⑦ 入群与保存"];
 function renderEnroll(){
-  if(!enr) enr = {step:0, info:{enrollDate:today(),diseases:[]}, amrs:Array(12).fill(null), lit:Array(41).fill(null), iv:[], ivNote:""};
+  if(!enr) enr = {step:0, info:{enrollDate:today(),diseases:[],group:"是",pref:"电话"},
+    consent:{mode:"electronic",date:today(),sig:null},
+    meds:[{name:"",dose:"",freq:"",note:""}], photos:[],
+    amrs:Array(12).fill(null), lit:Array(41).fill(null), iv:[], ivNote:""};
   const st = enr.step;
-  const steps = ["① 基本信息","② AMRS依从性","③ 药物素养量表","④ 结果与干预处方"];
   let body = "";
-  if(st===0) body = enrollInfoHtml();
-  if(st===1) body = qHtml("AMRS药物治疗依从性评估（12题）", AMRS_ITEMS, enr.amrs, "amrs")
+  if(st===0) body = enrollConsentHtml();
+  if(st===1) body = enrollInfoHtml();
+  if(st===2) body = enrollMedsHtml();
+  if(st===3) body = scriptBox("A2")
+    + qHtml("AMRS药物治疗依从性评估（12题）", AMRS_ITEMS, enr.amrs, "amrs")
     + `<p class="muted">总分12~48分，得分越低依从性越好。第12题为反向题，系统已自动按反向赋值计分，药师按患者原话选择即可。</p>`;
-  if(st===2) body = qHtml("老年人科学用药素养与常识调查问卷（41题）", LIT_ITEMS, enr.lit, "lit")
+  if(st===4) body = scriptBox("A2")
+    + qHtml("老年人科学用药素养与常识调查问卷（41题）", LIT_ITEMS, enr.lit, "lit")
     + `<p class="muted">系统按CRF印制分值自动计分（含全部反向题的自动赋值），无需人工换算。</p>`;
-  if(st===3) body = resultHtml();
+  if(st===5) body = resultHtml();
+  if(st===6) body = enrollFinishHtml();
   view.innerHTML = `<div class="card"><h2>新增入组</h2>
-    <div class="steps">${steps.map((s,i)=>`<div class="${i===st?"on":i<st?"done":""}">${s}</div>`).join("")}</div>
-    <div class="note">开场请使用话术 <b>A1（知情同意）</b>、施测使用 <b>A2（量表引导）</b>——可在【话术库】查看复制。签署知情同意书后再开始录入。</div>
+    <div class="steps">${ENR_STEPS.map((s,i)=>`<div class="${i===st?"on":i<st?"done":""}">${s}</div>`).join("")}</div>
+    <div class="note">每一步已嵌入对应话术（可展开查看、可跳过）：①知情同意-A1　④⑤量表施测-A2　⑥首次干预-B类　⑦入群邀请-A3。</div>
     ${body}
     <div class="row" style="margin-top:14px">
       ${st>0?`<button class="btn sec" onclick="enrPrev()">上一步</button>`:""}
       <span class="spacer"></span>
-      ${st<3?`<button class="btn" onclick="enrNext()">下一步</button>`:`<button class="btn" onclick="enrSave()">保存入组</button>`}
+      ${st<6?`<button class="btn" onclick="enrNext()">下一步</button>`:`<button class="btn" onclick="enrSave()">保存入组</button>`}
       <button class="btn warn sm" onclick="if(confirm('放弃本次入组录入？')){enr=null;go('dash')}">取消</button>
     </div></div>`;
-  if(st===0) fillInfoForm();
+  if(st===0) initSigPad();
+  if(st===1) fillInfoForm();
 }
+/* 第①步：知情同意 + 电子签 */
+function enrollConsentHtml(){
+  const c=enr.consent;
+  return `${scriptBox("A1")}
+  <h3>知情同意签署</h3>
+  <p class="muted">确认患者符合全部入组标准并完成 A1 告知后签署。入组标准：≥60岁；确诊高血压/糖尿病/冠心病/脑卒中至少1种；服用≥2种慢性病药物；能自主交流、同意3个月随访。</p>
+  <div class="row" style="margin:8px 0">
+    <label class="ck"><input type="radio" name="c_mode" value="electronic" ${c.mode==="electronic"?"checked":""}
+      onchange="enr.consent.mode='electronic';renderEnroll()">电子签字（在下方签字板签名）</label>
+    <label class="ck"><input type="radio" name="c_mode" value="paper" ${c.mode==="paper"?"checked":""}
+      onchange="enr.consent.mode='paper';renderEnroll()">已签署纸质版（纸质件归档）</label>
+    <span class="spacer"></span>
+    <span>签署日期：<input type="date" id="c_date" value="${esc(c.date)}" style="width:160px"
+      onchange="enr.consent.date=this.value"></span>
+  </div>
+  ${c.mode==="electronic"?`
+  <div class="sigwrap"><canvas class="sig" id="sigpad"></canvas></div>
+  <div class="row" style="margin-top:6px">
+    <span class="muted">请患者用手指（触屏）或鼠标在框内签名</span>
+    <span class="spacer"></span>
+    <button class="btn sec sm" onclick="clearSig()">清除重签</button>
+  </div>
+  <p class="muted">电子签字页将保存在患者档案中，入组后可在患者详情页查看、打印。</p>`
+  :`<p class="muted">已选择纸质签署：知情同意书一式两份，一份交患者留存；系统仅记录签署日期。</p>`}`;
+}
+/* 第②步：基本信息 */
 function enrollInfoHtml(){
   const i=enr.info;
-  return `<div class="grid g3">
+  return `<h3>基本信息登记</h3><div class="grid g3">
     <div><label class="f">受试者编号（中心号+顺序号，如01001）*</label><input type="text" id="f_code" maxlength="8"></div>
     <div><label class="f">姓名缩写（大写拼音，如ZHSA）*</label><input type="text" id="f_initials" maxlength="4" style="text-transform:uppercase"></div>
     <div><label class="f">入组日期*</label><input type="date" id="f_date"></div>
     <div><label class="f">性别*</label><select id="f_sex"><option value="">请选择</option><option>男</option><option>女</option></select></div>
     <div><label class="f">年龄（周岁，≥60）*</label><input type="number" id="f_age" min="60" max="120"></div>
-    <div><label class="f">现服药物数量（种，≥2）*</label><input type="number" id="f_drug" min="0" max="40"></div>
     <div><label class="f">患者/家属联系电话</label><input type="text" id="f_phone"></div>
-    <div><label class="f">是否已入微信群</label><select id="f_group"><option>是</option><option>否</option><option>家属代入群</option></select></div>
     <div><label class="f">随访偏好方式</label><select id="f_pref"><option>电话</option><option>微信</option><option>现场</option></select></div>
   </div>
   <fieldset><legend>所患慢性病（前四种至少1种）*</legend>
     ${DISEASES.map(d=>`<label class="ck"><input type="checkbox" class="f_dis" value="${d}" ${i.diseases.includes(d)?"checked":""}>${d}</label>`).join("")}
-  </fieldset>
-  <div><label class="f">现用药列表 / 备注（药名、剂量、频次，可简写）</label><textarea id="f_notes"></textarea></div>
-  <p class="muted">入组标准核查：≥60岁；确诊高血压/糖尿病/冠心病/脑卒中至少1种；服用≥2种慢性病药物；签署知情同意；能自主交流、同意3个月随访。</p>`;
+  </fieldset>`;
+}
+/* 第③步：结构化用药清单 + 拍照 */
+function enrollMedsHtml(){
+  return `<h3>先用药列表（结构化录入）</h3>
+  <p class="muted">药名、剂量、频次为必填；点击“＋ 添加药品”增行、行尾“−”删行。</p>
+  <div id="medlist">${medsTableHtml()}</div>
+  <div class="row" style="margin-top:8px">
+    <button class="btn sec sm" onclick="addMed()">＋ 添加药品</button>
+    <span class="spacer"></span>
+    <span>现服药物数量（种，≥2）* <input type="number" id="f_drug" min="0" max="40" style="width:90px"
+      value="${enr.info.drugCount??""}" onchange="enr.info.drugCount=+this.value||0"></span>
+  </div>
+  <datalist id="freqlist"><option value="每日1次"><option value="每日2次"><option value="每日3次"><option value="每晚1次"><option value="隔日1次"><option value="每周1次"><option value="必要时"></datalist>
+  <h3 style="margin-top:16px">用药清单拍照（可选，最多${MAX_PHOTOS}张）</h3>
+  <div class="row">
+    <label class="btn sec" style="cursor:pointer">📷 拍照 / 上传图片
+      <input type="file" accept="image/*" capture="environment" multiple style="display:none" onchange="enrAddPhotos(this)"></label>
+    <span class="muted">患者带来的药盒、纸质药单直接拍照存档；自动压缩，仅存本机。</span>
+  </div>
+  <div id="phlist" style="margin-top:6px">${thumbsHtml(enr.photos,"enrDelPhoto")}</div>
+  <div style="margin-top:12px"><label class="f">补充备注（可选）</label>
+    <textarea id="f_notes" onchange="enr.info.notes=this.value">${esc(enr.info.notes||"")}</textarea></div>`;
+}
+function medsTableHtml(){
+  return `<table class="t"><tr><th style="width:28%">药名*</th><th style="width:17%">剂量*</th><th style="width:19%">频次*</th><th>备注</th><th style="width:44px"></th></tr>
+  ${enr.meds.map((m,i)=>`<tr id="med_r${i}">
+    <td><input type="text" value="${esc(m.name)}" placeholder="如 氨氯地平片" oninput="enr.meds[${i}].name=this.value"></td>
+    <td><input type="text" value="${esc(m.dose)}" placeholder="如 5mg/次" oninput="enr.meds[${i}].dose=this.value"></td>
+    <td><input type="text" list="freqlist" value="${esc(m.freq)}" placeholder="如 每日1次" oninput="enr.meds[${i}].freq=this.value"></td>
+    <td><input type="text" value="${esc(m.note)}" placeholder="如 早饭后" oninput="enr.meds[${i}].note=this.value"></td>
+    <td><button class="btn warn sm" title="删除本行" onclick="delMed(${i})">−</button></td></tr>`).join("")}
+  </table>`;
+}
+function addMed(){ enr.meds.push({name:"",dose:"",freq:"",note:""}); syncDrugCount(); refreshMeds(); }
+function delMed(i){ enr.meds.splice(i,1); syncDrugCount(); refreshMeds(); }
+function refreshMeds(){ const el=document.getElementById("medlist"); if(el) el.innerHTML=medsTableHtml(); }
+function syncDrugCount(){
+  const n=enr.meds.filter(m=>m.name.trim()).length;
+  if(n>0){ enr.info.drugCount=n; const el=document.getElementById("f_drug"); if(el) el.value=n; }
+}
+async function enrAddPhotos(inp){
+  const files=[...inp.files]; inp.value="";
+  for(const f of files){
+    if(enr.photos.length>=MAX_PHOTOS){ toast("最多保存"+MAX_PHOTOS+"张照片"); break; }
+    try{ enr.photos.push(await compressImage(f)); }catch(e){ toast(e.message); }
+  }
+  const el=document.getElementById("phlist"); if(el) el.innerHTML=thumbsHtml(enr.photos,"enrDelPhoto");
+}
+function enrDelPhoto(i){
+  enr.photos.splice(i,1);
+  const el=document.getElementById("phlist"); if(el) el.innerHTML=thumbsHtml(enr.photos,"enrDelPhoto");
+}
+/* 第⑦步：入群邀请与保存 */
+function enrollFinishHtml(){
+  const r=scoreLit(enr.lit), L=LEVELS[r.level];
+  return `${scriptBox("A3")}
+  <h3>入群情况</h3>
+  <div class="grid g3">
+    <div><label class="f">是否已入微信群</label><select id="f_group">
+      <option${enr.info.group==="是"?" selected":""}>是</option>
+      <option${enr.info.group==="否"?" selected":""}>否</option>
+      <option${enr.info.group==="家属代入群"?" selected":""}>家属代入群</option></select></div>
+  </div>
+  <div class="note">保存前核对：本患者素养分层为 <span class="tag ${L.cls}">${L.name}</span>；
+    ${r.level==="low"?"<b>素养不足层务必落实家属入群与家属沟通，建议2周内电话加强联系1次；</b>":""}
+    告知患者第1个月将进行随访。点击“保存入组”后数据写入本机档案。</div>`;
 }
 function fillInfoForm(){
   const i=enr.info;
   const set=(id,v)=>{const el=document.getElementById(id); if(el&&v!==undefined&&v!==null)el.value=v;};
   set("f_code",i.code); set("f_initials",i.initials); set("f_date",i.enrollDate);
-  set("f_sex",i.sex); set("f_age",i.age); set("f_drug",i.drugCount);
-  set("f_phone",i.phone); set("f_group",i.group); set("f_pref",i.pref); set("f_notes",i.notes);
+  set("f_sex",i.sex); set("f_age",i.age);
+  set("f_phone",i.phone); set("f_pref",i.pref);
 }
 function collectInfo(){
   const g=id=>document.getElementById(id)?.value?.trim()||"";
   const i=enr.info;
   i.code=g("f_code"); i.initials=g("f_initials").toUpperCase(); i.enrollDate=g("f_date");
-  i.sex=g("f_sex"); i.age=+g("f_age")||0; i.drugCount=+g("f_drug")||0;
-  i.phone=g("f_phone"); i.group=g("f_group"); i.pref=g("f_pref"); i.notes=g("f_notes");
+  i.sex=g("f_sex"); i.age=+g("f_age")||0;
+  i.phone=g("f_phone"); i.pref=g("f_pref");
   i.diseases=[...document.querySelectorAll(".f_dis:checked")].map(x=>x.value);
 }
 function qHtml(title, items, answers, key){
@@ -563,9 +909,16 @@ function updProg(key){
   const el = document.getElementById("prog_"+key);
   if(el) el.textContent = `已答 ${arr.filter(v=>v!==null).length} / ${arr.length} 题`;
 }
-function enrPrev(){ if(enr.step===1) collect_ok=true; enr.step--; renderEnroll(); }
+function enrPrev(){ enr.step--; renderEnroll(); }
 function enrNext(){
-  if(enr.step===0){
+  if(enr.step===0){ // 知情同意
+    enr.consent.date = document.getElementById("c_date")?.value || enr.consent.date;
+    if(!enr.consent.date){ alert("请填写知情同意签署日期"); return; }
+    if(enr.consent.mode==="electronic" && !sigValid(enr.consent.sig)){
+      alert("请患者在签字板上签名；如现场已签纸质版，请改选“已签署纸质版”。"); return;
+    }
+  }
+  if(enr.step===1){ // 基本信息
     collectInfo();
     const i=enr.info, errs=[];
     if(!/^\d{4,8}$/.test(i.code)) errs.push("受试者编号应为数字（中心号+顺序号）");
@@ -574,21 +927,32 @@ function enrNext(){
     if(!i.enrollDate) errs.push("请填入组日期");
     if(!i.sex) errs.push("请选择性别");
     if(!(i.age>=60)) errs.push("年龄须≥60岁");
-    if(!(i.drugCount>=2)) errs.push("服用药物须≥2种（不符合入组标准）");
     if(!i.diseases.some(d=>["高血压","糖尿病","冠心病","脑卒中"].includes(d))) errs.push("四种目标慢性病须至少选1种");
     if(errs.length){ alert("请核查：\n· "+errs.join("\n· ")); return; }
   }
-  if(enr.step===1 || enr.step===2){
-    const key = enr.step===1?"amrs":"lit";
+  if(enr.step===2){ // 用药清单
+    enr.info.notes = document.getElementById("f_notes")?.value?.trim()||"";
+    enr.info.drugCount = +document.getElementById("f_drug")?.value||0;
+    enr.meds = enr.meds.filter(m=>m.name.trim()||m.dose.trim()||m.freq.trim()||m.note.trim());
+    const bad = enr.meds.findIndex(m=>!(m.name.trim()&&m.dose.trim()&&m.freq.trim()));
+    if(bad>=0){ alert("第"+(bad+1)+"行药品的药名、剂量、频次为必填项，请补全或删除该行。"); return; }
+    const n=enr.meds.length;
+    if(n>0 && enr.info.drugCount<n) enr.info.drugCount=n;
+    if(!(enr.info.drugCount>=2)){ alert("服用药物须≥2种（不符合入组标准），请核对用药清单。"); return; }
+    if(enr.meds.length===0) enr.meds=[{name:"",dose:"",freq:"",note:""}]; // 回退编辑时保留空行
+  }
+  if(enr.step===3 || enr.step===4){ // 量表完整性
+    const key = enr.step===3?"amrs":"lit";
     const arr = enr[key];
     let firstMiss=-1;
     arr.forEach((v,idx)=>{ if(v===null){ if(firstMiss<0)firstMiss=idx; document.getElementById(key+"_r"+idx)?.classList.add("missing"); }});
     if(firstMiss>=0){ toast("尚有未回答的条目（已用红框标出）"); document.getElementById(key+"_r"+firstMiss)?.scrollIntoView({behavior:"smooth",block:"center"}); return; }
-    if(enr.step===2){ // 进入结果页前计算并预置干预措施
+    if(enr.step===4){ // 进入结果页前计算并预置干预措施
       const r = scoreLit(enr.lit);
       enr.iv = LEVELS[r.level].defaults.slice();
     }
   }
+  if(enr.step===5){ enr.ivNote = document.getElementById("f_ivnote")?.value || enr.ivNote; }
   enr.step++; renderEnroll();
 }
 function resultHtml(){
@@ -618,26 +982,33 @@ function resultHtml(){
     <p><b>本次实施的干预措施（对应CRF勾选）：</b></p>
     <div>${INTERVENTIONS.map((t,i)=>`<label class="ck"><input type="checkbox" ${enr.iv.includes(i)?"checked":""} onchange="toggleIv(${i},this.checked)">${t}</label>`).join("")}</div>
     <div style="margin-top:6px"><label class="f">⑧其他/备注（如“家属协同管理”“转诊”）</label><input type="text" id="f_ivnote" value="${esc(enr.ivNote)}" onchange="enr.ivNote=this.value"></div>
-    <div class="script"><div class="sh"><b>${scr.id}　${esc(scr.title)}</b>
-      <button class="btn sm" onclick="copyScript('${scr.id}')">复制话术</button></div>
-      <div class="sb">${esc(scr.body)}</div>${scr.note?`<div class="sn">〔药师注意〕${esc(scr.note)}</div>`:""}</div>
-    <div class="note">结束前：邀请入群（话术A3）；${r.level==="low"?"落实家属入群与家属沟通；建议2周内电话加强联系1次；":""}告知第1个月将随访。</div>
+    ${scriptBox(scr.id)}
+  </div>
+  <div class="card" style="margin-top:12px"><h3 style="margin-top:0">逐条干预建议（41条，系统自动分级）</h3>
+    ${itemAdviceHtml(enr.lit)}
+  </div>
+  <div class="card" style="margin-top:12px"><h3 style="margin-top:0">患者结果二维码</h3>
+    ${qrBoxHtml(qrLink(enr.info.code,enr.info.initials,enr.info.enrollDate,enr.lit,enr.amrs))}
   </div>`;
 }
 function toggleIv(i,on){ if(on){ if(!enr.iv.includes(i))enr.iv.push(i);} else enr.iv=enr.iv.filter(x=>x!==i); }
 function enrSave(){
   const r = scoreLit(enr.lit);
-  enr.ivNote = document.getElementById("f_ivnote")?.value || enr.ivNote;
+  enr.info.group = document.getElementById("f_group")?.value || enr.info.group;
+  const meds = enr.meds.filter(m=>m.name.trim());
   const p = {
     id:"p"+Date.now(), code:enr.info.code, initials:enr.info.initials, sex:enr.info.sex, age:enr.info.age,
     diseases:enr.info.diseases, drugCount:enr.info.drugCount, enrollDate:enr.info.enrollDate,
     phone:enr.info.phone, group:enr.info.group, pref:enr.info.pref, notes:enr.info.notes,
+    consent:{mode:enr.consent.mode, date:enr.consent.date, sig:enr.consent.mode==="electronic"?enr.consent.sig:null},
+    meds:meds,
     baseline:{amrs:enr.amrs.slice(), amrsScore:scoreAmrs(enr.amrs), lit:enr.lit.slice(),
       total:r.total, avg:r.avg, level:r.level, pass:r.pass, dims:r.dims,
       iv:enr.iv.slice().sort(), ivNote:enr.ivNote},
     fu1:null, fu2:null
   };
   state.patients.push(p); save();
+  if(enr.photos.length) photosSet(p.id, enr.photos.slice());
   toast("入组保存成功："+p.code);
   enr=null; go("detail", p.id);
 }
@@ -671,13 +1042,31 @@ function renderDetail(id){
     }
     return `<div class="card"><h2>第${fuMonth(which)}个月随访 ${fu&&fu.done?'<span class="tag good">已完成</span>':""}</h2>${inner}</div>`;
   };
+  const meds = p.meds||[];
+  const qrSrc = (p.fu2&&p.fu2.done&&p.fu2.lit)
+    ? {lit:p.fu2.lit, amrs:p.fu2.amrs, date:p.fu2.date, label:"患者结果二维码（3个月复测结果）"}
+    : {lit:b.lit, amrs:b.amrs, date:p.enrollDate, label:"患者结果二维码（基线评估结果）"};
   view.innerHTML = `
   <div class="row" style="margin-bottom:10px"><button class="btn sec sm" onclick="go('patients')">← 返回列表</button>
     <span class="spacer"></span><button class="btn warn sm" onclick="delPatient('${p.id}')">删除该患者</button></div>
   <div class="card"><h2>${esc(p.code)}　${esc(p.initials)}　<span class="tag ${L.cls}">素养${L.name}</span> ${b.pass?'<span class="tag info">达标</span>':""}</h2>
     <p>${p.sex} / ${p.age}岁　入组：${p.enrollDate}　随访偏好：${esc(p.pref||"")}　微信群：${esc(p.group||"")} ${p.phone?("　电话："+esc(p.phone)):""}</p>
     <p>慢性病：${p.diseases.map(d=>`<span class="chip">${d}</span>`).join("")}　用药 ${p.drugCount} 种</p>
-    ${p.notes?`<p class="muted">用药/备注：${esc(p.notes)}</p>`:""}
+    <p>知情同意：${p.consent?`<span class="tag info">${p.consent.mode==="electronic"?"电子签":"纸质签"}（${esc(p.consent.date||"")}）</span>
+      <button class="btn sm sec" onclick="viewConsent('${p.id}')">查看/打印签字页</button>`
+      :'<span class="tag grey">旧版录入，无电子记录</span>'}</p>
+  </div>
+  <div class="card"><h2>用药清单</h2>
+    ${meds.length?`<table class="t"><tr><th>药名</th><th>剂量</th><th>频次</th><th>备注</th></tr>
+      ${meds.map(m=>`<tr><td>${esc(m.name)}</td><td>${esc(m.dose)}</td><td>${esc(m.freq)}</td><td>${esc(m.note||"")}</td></tr>`).join("")}</table>`
+      :'<p class="muted">未录入结构化用药清单。</p>'}
+    ${p.notes?`<p class="muted" style="margin-top:6px">备注：${esc(p.notes)}</p>`:""}
+    <h3>用药清单照片（仅存本机，最多${MAX_PHOTOS}张）</h3>
+    <div id="dphotos"><p class="muted">加载中…</p></div>
+    <div class="row" style="margin-top:6px">
+      <label class="btn sec sm" style="cursor:pointer">📷 补拍 / 上传
+        <input type="file" accept="image/*" capture="environment" multiple style="display:none" onchange="detailAddPhotos('${p.id}',this)"></label>
+    </div>
   </div>
   <div class="grid g2">
     <div class="card" style="margin:0"><h2>基线评估</h2>
@@ -697,12 +1086,43 @@ function renderDetail(id){
       <button class="btn sm sec" onclick="copyScript('D2')">复制D2随访脚本</button></div>
     </div>
   </div>
+  <div class="card"><h2>逐条干预建议</h2>
+    <details open><summary style="cursor:pointer;font-weight:700;color:var(--blue-d)">基线（41条，点击折叠/展开）</summary>
+      ${itemAdviceHtml(b.lit)}</details>
+    ${p.fu2&&p.fu2.done&&p.fu2.lit?`<details style="margin-top:10px"><summary style="cursor:pointer;font-weight:700;color:var(--blue-d)">3个月复测（41条，点击展开）</summary>
+      ${itemAdviceHtml(p.fu2.lit)}</details>`:""}
+  </div>
+  <div class="card"><h2>患者结果二维码</h2>
+    ${qrBoxHtml(qrLink(p.code,p.initials,qrSrc.date,qrSrc.lit,qrSrc.amrs),qrSrc.label)}
+  </div>
   ${fuCard(1,p.fu1,s1)}
   ${fuCard(2,p.fu2,s2)}`;
+  loadDetailPhotos(p.id);
+}
+let _dph=[], _dpid=null;
+function detailDelPhotoIdx(i){ if(_dpid) detailDelPhoto(_dpid,i); }
+async function loadDetailPhotos(pid){
+  _dpid=pid; _dph = await photosGet(pid);
+  const el=document.getElementById("dphotos");
+  if(el) el.innerHTML = thumbsHtml(_dph,"detailDelPhotoIdx");
+}
+async function detailAddPhotos(pid,inp){
+  const files=[...inp.files]; inp.value="";
+  const cur=await photosGet(pid);
+  for(const f of files){
+    if(cur.length>=MAX_PHOTOS){ toast("最多保存"+MAX_PHOTOS+"张照片"); break; }
+    try{ cur.push(await compressImage(f)); }catch(e){ toast(e.message); }
+  }
+  await photosSet(pid,cur); loadDetailPhotos(pid); toast("照片已保存（仅存本机）");
+}
+async function detailDelPhoto(pid,i){
+  if(!confirm("删除这张照片？")) return;
+  const cur=await photosGet(pid); cur.splice(i,1);
+  await photosSet(pid,cur); loadDetailPhotos(pid);
 }
 function delPatient(id){
-  if(!confirm("确认删除该患者的全部记录？此操作不可恢复（建议先在【数据导出】备份）。")) return;
-  state.patients = state.patients.filter(p=>p.id!==id); save(); toast("已删除"); go("patients");
+  if(!confirm("确认删除该患者的全部记录（含用药清单照片）？此操作不可恢复（建议先在【数据导出】备份）。")) return;
+  state.patients = state.patients.filter(p=>p.id!==id); save(); photosDel(id); toast("已删除"); go("patients");
 }
 
 /* ---------------- 随访录入 ---------------- */
@@ -856,7 +1276,7 @@ function renderData(){
       <span class="spacer"></span>
       <button class="btn warn" onclick="wipe()">清空全部数据</button>
     </div>
-    <div class="note">数据仅存于本机浏览器。建议：每周导出一次JSON备份存至工作电脑；按项目要求定期将CSV汇总表上报项目组。上报文件仅含受试者编号与姓名缩写，不含可直接识别身份的信息。</div>
+    <div class="note">数据仅存于本机浏览器。建议：每周导出一次JSON备份存至工作电脑；按项目要求定期将CSV汇总表上报项目组。上报文件仅含受试者编号与姓名缩写，不含可直接识别身份的信息。<br><b>照片说明：</b>用药清单照片仅保存在本机浏览器（IndexedDB），不包含在JSON备份、CSV导出和云端加密备份中；换电脑或清除浏览器数据前请自行另存需要留档的照片。</div>
   </div>`;
 }
 function csvEsc(v){ v=String(v??""); return /[",\n]/.test(v)?('"'+v.replace(/"/g,'""')+'"'):v; }
@@ -867,9 +1287,10 @@ function downloadFile(name, content, mime){
   setTimeout(()=>URL.revokeObjectURL(a.href),2000);
 }
 function ivStr(iv){ return (iv||[]).map(i=>INTERVENTIONS[i]).join("；"); }
+function medsStr(p){ return (p.meds||[]).map(m=>`${m.name} ${m.dose} ${m.freq}${m.note?("("+m.note+")"):""}`).join("；"); }
 function expSummary(){
   const dimNames = Object.keys(DIMS);
-  const head = ["受试者编号","姓名缩写","性别","年龄","慢性病","用药数量","入组日期","联系电话","入群情况",
+  const head = ["受试者编号","姓名缩写","性别","年龄","慢性病","用药数量","用药清单","知情同意方式","知情同意日期","入组日期","联系电话","入群情况",
     "AMRS基线","素养基线总分","素养基线均分","基线分层","基线达标",
     ...dimNames.map(d=>"基线_"+d),"基线干预措施","基线干预备注",
     "随访1完成","随访1日期","随访1方式","随访1不良反应","随访1不良反应描述","随访1监测达标","随访1新问题","随访1新问题描述","随访1干预措施",
@@ -878,7 +1299,9 @@ function expSummary(){
     "满意度1","满意度2","满意度3","试验完成情况","随访2干预措施"];
   const rows = state.patients.map(p=>{
     const b=p.baseline, f1=p.fu1||{}, f2=p.fu2||{};
-    return [p.code,p.initials,p.sex,p.age,p.diseases.join("、"),p.drugCount,p.enrollDate,p.phone||"",p.group||"",
+    return [p.code,p.initials,p.sex,p.age,p.diseases.join("、"),p.drugCount,medsStr(p),
+      p.consent?(p.consent.mode==="electronic"?"电子签":"纸质签"):"",p.consent?(p.consent.date||""):"",
+      p.enrollDate,p.phone||"",p.group||"",
       b.amrsScore,b.total,b.avg,LEVELS[b.level].name,b.pass?"是":"否",
       ...Object.keys(DIMS).map(d=>b.dims[d]),ivStr(b.iv),b.ivNote||"",
       f1.done?"是":"否",f1.date||"",f1.method||"",f1.adr||"",f1.adrDesc||"",f1.monitor||"",f1.newIssue||"",f1.newDesc||"",ivStr(f1.iv),
@@ -1048,7 +1471,7 @@ function renderSettings(){
     <p class="muted" style="margin-top:8px">规划功能：①患者群提问→AI按话术库口径生成回复草稿→药师审核（含禁语校验）后发送；②随访通话要点→AI整理为CRF格式记录；③现用药清单→相互作用/重复用药初筛提示。启用前提：项目组确定合规的大模型服务、数据脱敏规则与审核流程。当前版本所有计分、分层、话术匹配均为确定性规则，符合研究标准化要求，不依赖AI。</p>
   </div>
   <div class="card"><h2>关于</h2>
-    <p class="muted">老年人合理用药干预·药师工作台 离线版V1.0（2026-07-14）。依据：《研究病例记录表》V2.0、《附件2 老年人合理用药干预措施方案及标准化话术》V1.0。量表计分规则：41题总分41–205，平均分≥4良好、3~4中等、≤3不足；总分≥157或平均分≥3.82达标；全部反向题由系统自动赋值。数据仅存本机浏览器，请定期备份。<br>图文版操作手册：<a href="https://fsclyx.github.io/yaoshi-gongzuotai/%E8%8D%AF%E5%B8%88%E5%B7%A5%E4%BD%9C%E5%8F%B0%E4%BD%BF%E7%94%A8%E6%89%8B%E5%86%8C.docx" target="_blank">点此下载《药师工作台使用手册》(Word)</a>。</p>
+    <p class="muted">老年人合理用药干预·药师工作台 离线版V1.1（2026-07-14）。依据：《研究病例记录表》V2.0、《附件2 老年人合理用药干预措施方案及标准化话术》V1.0。量表计分规则：41题总分41–205，平均分≥4良好、3~4中等、≤3不足；总分≥157或平均分≥3.82达标；全部反向题由系统自动赋值。数据仅存本机浏览器，请定期备份。<br>图文版操作手册：<a href="https://fsclyx.github.io/yaoshi-gongzuotai/%E8%8D%AF%E5%B8%88%E5%B7%A5%E4%BD%9C%E5%8F%B0%E4%BD%BF%E7%94%A8%E6%89%8B%E5%86%8C.docx" target="_blank">点此下载《药师工作台使用手册》(Word)</a>。</p>
   </div>`;
 }
 function saveSettings(){
@@ -1077,6 +1500,15 @@ window.__selftest = function(){
   out.push(["边界: avg=4 → 良好?", levelOf(4)==="good"]);
   out.push(["边界: avg=3 → 不足?", levelOf(3)==="low"]);
   out.push(["边界: avg=3.5 → 中等?", levelOf(3.5)==="mid"]);
+  out.push(["条目建议: 41条文案齐全?", ITEM_TIPS.length===41 && ITEM_TIPS.every(t=>t.length>4)]);
+  out.push(["条目分级: 1,2→强力 3,4→普通 5→不干预?",
+    adviceLevel(1)===0&&adviceLevel(2)===0&&adviceLevel(3)===1&&adviceLevel(4)===1&&adviceLevel(5)===2]);
+  const qo={c:"01001",i:"ZHSA",d:"2026-07-14",L:"5".repeat(41),A:"1".repeat(12),n:"测试中心",p:"010-1234"};
+  const rt=JSON.parse(unb64url(b64url(JSON.stringify(qo))));
+  out.push(["QR载荷编解码往返一致?", JSON.stringify(rt)===JSON.stringify(qo)]);
+  out.push(["QR链接生成非空?", qrLink("01001","ZHSA","2026-07-14",Array(41).fill(4),Array(12).fill(2)).startsWith(PATIENT_URL+"#1")]);
+  out.push(["meds兼容: 旧数据无meds不报错?", medsStr({})==="" ]);
+  out.push(["AMRS提示: 12条齐全?", AMRS_TIPS.length===12]);
   console.table(out.map(o=>({检查:o[0],通过:o[1]})));
   return out.every(o=>o[1]);
 };

@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>我的用药评估结果</title>
+<style>
+:root{--blue:#1f6fb2;--blue-d:#15507f;--green:#1b7a43;--amber:#a4530a;--red:#b91c1c;--ink:#1f2937;--muted:#5b6472;--bg:#f4f6f8}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Microsoft YaHei","PingFang SC",sans-serif;background:var(--bg);color:var(--ink);font-size:18px;line-height:1.8}
+.wrap{max-width:640px;margin:0 auto;padding:14px 14px 40px}
+header{background:var(--blue-d);color:#fff;border-radius:0 0 14px 14px;padding:20px 16px;text-align:center}
+header h1{font-size:23px;margin-bottom:4px}
+header p{font-size:14px;opacity:.85}
+.card{background:#fff;border-radius:14px;padding:16px;margin-top:14px;box-shadow:0 1px 4px rgba(0,0,0,.07)}
+.card h2{font-size:20px;margin-bottom:10px;color:var(--blue-d)}
+.big{font-size:34px;font-weight:800}
+.tag{display:inline-block;padding:4px 16px;border-radius:16px;font-size:18px;font-weight:700}
+.tag.good{background:#d1fae5;color:#065f46}.tag.mid{background:#fef3c7;color:#92400e}.tag.low{background:#fee2e2;color:#991b1b}
+.item{border-left:6px solid #ccc;border-radius:8px;background:#fafbfc;padding:10px 12px;margin:10px 0}
+.item.strong{border-color:var(--red);background:#fef5f5}
+.item.normal{border-color:#d97706;background:#fffbf2}
+.item.keep{border-color:var(--green);background:#f3faf6}
+.item b.do{display:block;font-size:18px;margin-bottom:2px}
+.item .src{font-size:13.5px;color:var(--muted)}
+.cnt{font-size:15px;color:var(--muted)}
+details summary{cursor:pointer;font-size:18px;font-weight:700;color:var(--blue-d);padding:4px 0}
+.foot{background:var(--blue-d);color:#fff;border-radius:14px;padding:16px;margin-top:14px;font-size:18px}
+.foot b{font-size:20px}
+.foot .warn{display:block;margin-top:10px;font-size:14px;opacity:.85;line-height:1.6}
+.err{background:#fff;border-radius:14px;padding:30px 18px;margin-top:30px;text-align:center;font-size:18px}
+.sec-note{font-size:14.5px;color:var(--muted);margin-bottom:6px}
+</style>
+</head>
+<body>
+<header>
+  <h1>我的用药评估结果</h1>
+  <p id="who"></p>
+</header>
+<div class="wrap" id="app"></div>
+
+<script>
+/* ====== 与药师工作台完全一致的题库与建议口径 ====== */
+const LIT_TEXTS = [
+"生病了应该尽量打针、输液","打针、输液等注射剂药品比口服药品更安全","越贵的药品越安全","越贵的药品越有效",
+"购药时应看品牌和名气判断药品质量好坏","用药的品种越多效果越好","用药的疗程（时间）越长越好","保健品就是药品",
+"吃过保健品可以减少药品的用量","任何口服药都可以用牛奶、咖啡或饮料送服","任何药物均可同时服用","用抗菌药物治疗感冒发烧",
+"抗菌药就是消炎药","抗菌药物可以杀死任何细菌和病毒","当周围的人感冒发烧或生其他病时，可以服用抗菌药进行预防",
+"服用非处方药不会有任何不良反应","所有的药品都可以在常温下保存","任何药品的储存无需考虑“光照”的影响",
+"儿童（婴儿）均可服用成人药，只要适当减量即可","老年人因为身体机能较青壮年有所下降，服用药品应自行减量",
+"无论男性或女性，在备孕期可以使用任何药品，无需考虑风险","接种疫苗是预防一些疾病最有效、最经济的措施",
+"药师可以为我是否需要服药，提供好的建议","药师可以为我如何正确服药，提供好的建议",
+"家人或处于孕期或哺乳期的女性，使用任何药品前，都应查看说明书或咨询医生药师",
+"根据自己的经验或是广告的宣传自行购买药品","看病时，向医生点名要开某种药品","在药店购买药品时听信营业员的建议",
+"吃西药的同时擅自选择中药服用","服用已经超过有效期的药品","无论何种剂型的药品，把药片掰开或是研碎后再吃",
+"在没有咨询医师或者药师情况下，将好几种药物混着吃","处方药服药几天后，感觉没效果擅自更换药物",
+"为了使药物“快速起效”，初次服药时擅自加倍药量","疾病痊愈或达到用药疗程后，自行延长用药时间",
+"出现了药物不良反应，只是自行停药，不做任何其它处理","使用每种药品前都会仔细阅读药品说明书",
+"用药前仔细了解药品副作用以及出现副作用后的表现","了解使用某个药物时的禁忌事项（喝酒、驾驶等）",
+"使用特殊装置的药品前会仔细阅读说明书中装置的使用方法","当不明白药品如何使用时向药师咨询"];
+const ITEM_TIPS = [
+"记住“能口服不打针，能打针不输液”。看病时不主动要求输液，医生说吃药能治就配合吃药。",
+"注射的药直接进血管，风险反而比口服高。不要觉得打针输液更保险，按医生处方来即可。",
+"药的安全性和价格无关。按医生处方用药，不自行买贵药替换。",
+"对症才有效。通过一致性评价的仿制药与原研药疗效相当，遵医嘱选择即可，不必只认贵药。",
+"选药不看广告和名气，看是否对症。到正规医院、药店购药，拿不准就问药师。",
+"药不是越多越好，重复用药更伤身。想加任何药，先把在吃的药单给医生或药师看。",
+"吃多久由医生定，到了疗程就复诊。不自行延长“巩固巩固”。",
+"保健品不是药，不能治病。正规药一片都不能因为吃了保健品而停。",
+"吃保健品也不能减药量。想调整药量，必须先问医生。",
+"吃药只用温开水送服。牛奶、咖啡、浓茶、果汁都可能影响药效。",
+"几种药能不能一起吃要问医生药师。就诊时带上完整用药清单。",
+"感冒发烧多是病毒引起，抗菌药（头孢、阿莫西林等）无效。先就诊，不自行吃抗菌药。",
+"抗菌药不是“消炎药”。家里存的头孢、阿莫西林别随便当消炎药吃，一定凭处方使用。",
+"抗菌药对病毒无效，也不是万能。用不用、用哪种，听医生的。",
+"身边人生病时自己先吃抗菌药“预防”，没有用还伤身，不要这样做。",
+"非处方药也有不良反应。吃前看说明书“不良反应”一栏，有不舒服及时告诉药师。",
+"看说明书“贮藏”一栏：写“冷藏”的放冰箱2～8℃（如未开封的胰岛素），写“阴凉处”的别放暖气旁。",
+"写“遮光”的药放在原包装、抽屉或药箱里，不要摊在窗台等太阳晒得到的地方。",
+"孩子不能随便吃减量的成人药。务必用儿童剂型，并咨询医生或药师。",
+"年纪大了要不要减量，由医生根据肝肾功能决定，千万不要自己减。",
+"家人备孕、怀孕、哺乳期间用任何药，先看说明书“孕妇及哺乳期妇女用药”，或咨询医生药师。",
+"疫苗是最省钱、最有效的防病办法。留意社区通知，按时接种流感疫苗、肺炎疫苗。",
+"该不该吃药拿不准时问药师，免费：医院用药咨询窗口、社区药师、患者微信群都可以。",
+"怎么吃、饭前饭后、能不能掰开，都可以问药师，不要自己猜。",
+"家里有孕期哺乳期的人用药，先查说明书“禁忌”和“特殊人群”，或直接问医生药师。",
+"不凭老经验和广告买药。买药去正规药店，先咨询执业药师。",
+"看病时把症状说清楚就好，用什么药让医生决定，不点名要药。",
+"药店购药多问一句“有执业药师吗”，营业员推荐的贵药、保健品不必照单全收。",
+"吃西药期间想加中药，先把药名告诉医生或药师，确认不“打架”再吃。",
+"每3个月清一次家庭药箱，过期药坚决扔掉，一片也不吃。",
+"写有“缓释”“控释”“肠溶”的药不能掰、不能碾。咽不下时问药师有没有替代办法。",
+"几种药能否一起吃、要不要错开时间，先问医生药师，不自己混着吃。",
+"感觉没效果别自己换药停药。带上监测记录去复诊，让医生调整。",
+"首次吃药不加倍；漏服了也不补双倍。具体怎么补服，把药名告诉药师问清楚。",
+"病好了或疗程到了，按医嘱停药复诊，不自行“多吃几天巩固”。",
+"吃药后有不舒服，先打电话或在群里联系药师、医生，不要只是自己停药不管。",
+"每种新药到手，先花三分钟看说明书“用法用量”。看不清让家人念，或拍照发给药师。",
+"吃药前看一眼“不良反应”，心里有数不慌张；出现类似情况及时联系药师。",
+"看“注意事项”：能不能喝酒、影不影响开车，提前知道，避免出事。",
+"胰岛素笔、吸入剂等带装置的药，用前请药师示范一遍，照说明书步骤操作。",
+"用药拿不准就问药师：用药咨询电话、咨询窗口、患者微信群都可以，免费。"];
+const AMRS_LABELS=["容易忘记服药","有时不想服药","容易忘记去开药","出现过断药","看医生前自行停过药",
+"症状好转就不按时吃","身体不舒服就不按时吃","因疏忽没按时吃","自己调整过药量","一天多次的药容易漏服",
+"因药费推迟开药","没有提前计划开药"];
+const AMRS_TIPS=[
+"设手机闹钟或用一周分装药盒，把药放在饭桌等显眼处，防止忘服。",
+"不想吃药时先给药师打个电话说说想法，不要直接停药。",
+"药还剩一周的量就去开药，可在日历上做个记号。",
+"定一个固定的“开药日”，请家人帮着提醒，避免断药。",
+"看医生当天也照常吃药，除非医生提前告诉您需要停。",
+"感觉症状好转说明药在起效，更要按时吃；想调整要听医生的。",
+"身体不舒服时先联系医生或药师，不要自己不吃药。",
+"把吃药和固定习惯绑在一起，比如早饭后、睡前刷牙后，就不容易疏忽。",
+"任何加量、减量都先问医生，不自己调剂量。",
+"用带早、中、晚格子的药盒，一眼就能看出这顿吃没吃。",
+"药费有困难就告诉医生药师，可以商量换成报销范围内的等效药，别硬扛着断药。",
+"学会提前一周计划开药，别等药吃完了才想起来。"];
+const LEVELS={
+ good:{name:"良好",cls:"good",say:"您平时用药讲究、懂得也多，请继续保持好习惯，重点做好血压血糖监测和并发症预防。"},
+ mid:{name:"中等",cls:"mid",say:"您用药的大方向是对的，但还有几个容易踩坑的地方。照着下面的建议一条条改，就能更安全。"},
+ low:{name:"不足",cls:"low",say:"咱们有些用药的基本常识还需要一起补一补。别着急，先从下面标红的几件事做起，有不明白的随时问药师。"}};
+function levelOf(avg){ if(avg>=4) return "good"; if(avg>3) return "mid"; return "low"; }
+function esc(s){return String(s??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+function unb64url(s){ s=s.replace(/-/g,"+").replace(/_/g,"/"); while(s.length%4)s+="="; return decodeURIComponent(escape(atob(s))); }
+
+function render(){
+  const app=document.getElementById("app");
+  let d=null;
+  try{
+    const h=location.hash||"";
+    if(!h.startsWith("#1")) throw 0;
+    d=JSON.parse(unb64url(h.slice(2)));
+    if(!d.L || !/^[1-5]{41}$/.test(d.L)) throw 0;
+  }catch(e){
+    app.innerHTML=`<div class="err"><p style="font-size:40px">🔍</p>
+      <p><b>没有找到评估结果</b></p>
+      <p style="color:#5b6472;margin-top:8px">请用微信“扫一扫”重新扫描药师提供的二维码。<br>如仍打不开，请联系您的社区药师。</p></div>`;
+    return;
+  }
+  const lit=[...d.L].map(Number);
+  const total=lit.reduce((a,b)=>a+b,0), avg=total/41, lv=levelOf(avg), L=LEVELS[lv];
+  document.getElementById("who").textContent=`受试者编号 ${d.c||""}　${d.i||""}　评估日期 ${d.d||""}`;
+
+  const strong=[],normal=[],keep=[];
+  lit.forEach((v,i)=>{ (v<=2?strong:v<=4?normal:keep).push(i); });
+  const itemHtml=(i,cls)=>`<div class="item ${cls}">
+    <b class="do">${cls==="keep"?"继续保持：":""}${esc(ITEM_TIPS[i])}</b>
+    <span class="src">对应问卷第${i+1}题：${esc(LIT_TEXTS[i])}</span></div>`;
+
+  let amrsHtml="";
+  if(d.A && /^[1-4]{12}$/.test(d.A)){
+    const am=[...d.A].map(Number);
+    const amScore=am.reduce((a,b)=>a+b,0);
+    const probs=am.map((v,i)=>({v,i})).filter(x=>x.v>=3);
+    amrsHtml=`<div class="card"><h2>💊 按时服药小结</h2>
+      <p>您的服药依从性得分为 <b class="big" style="font-size:26px">${amScore}</b> 分（12～48分，<b>分数越低说明按时服药做得越好</b>）。</p>
+      ${probs.length?`<p class="sec-note">下面这几个习惯需要留意：</p>`+
+        probs.map(x=>`<div class="item normal"><b class="do">${esc(AMRS_TIPS[x.i])}</b>
+          <span class="src">您反映：${esc(AMRS_LABELS[x.i])}</span></div>`).join("")
+       :`<p>您按时服药做得很好，请继续保持！</p>`}
+    </div>`;
+  }
+
+  app.innerHTML=`
+  <div class="card" style="text-align:center">
+    <p class="cnt">用药素养平均分（满分5分）</p>
+    <p class="big" style="color:var(--blue-d)">${avg.toFixed(2)}</p>
+    <p style="margin:6px 0"><span class="tag ${L.cls}">素养水平：${L.name}</span></p>
+    <p style="text-align:left;margin-top:10px">${L.say}</p>
+  </div>
+  ${strong.length?`<div class="card"><h2>❗ 需要重点改变的习惯（${strong.length}条）</h2>
+    <p class="sec-note">这些是对您健康影响最大的地方，请先从这里做起：</p>
+    ${strong.map(i=>itemHtml(i,"strong")).join("")}</div>`:""}
+  ${normal.length?`<div class="card"><h2>📝 建议改进（${normal.length}条）</h2>
+    ${normal.map(i=>itemHtml(i,"normal")).join("")}</div>`:""}
+  ${keep.length?`<div class="card"><details${strong.length+normal.length===0?" open":""}>
+    <summary>👍 做得好的地方（${keep.length}条，点击查看）</summary>
+    ${keep.map(i=>itemHtml(i,"keep")).join("")}</details></div>`:""}
+  ${amrsHtml}
+  <div class="foot">
+    <b>❤️ 如有不理解的地方，请咨询您的社区药师</b><br>
+    ${d.n?esc(d.n):""}${d.p?("　☎ "+esc(d.p)):""}
+    <span class="warn">本页面内容为健康教育建议，帮助您养成安全用药习惯，不能代替医生的诊断和处方。调整任何药物，请先咨询您的主诊医师或药师。本页面不含您的姓名等身份信息。</span>
+  </div>`;
+}
+render();
+window.addEventListener("hashchange",render);
+</script>
+</body>
+</html>
