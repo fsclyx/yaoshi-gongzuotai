@@ -115,6 +115,7 @@ canvas.sig{display:block;width:100%;height:180px;touch-action:none;cursor:crossh
   <button data-v="patients">患者管理</button>
   <button data-v="enroll">新增入组</button>
   <button data-v="scripts">话术库</button>
+  <button data-v="ai">AI辅助</button>
   <button data-v="data">数据导出</button>
   <button data-v="settings">设置</button>
 </nav>
@@ -643,7 +644,7 @@ function go(v, arg){
   current = v;
   document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("active",b.dataset.v===v));
   ({dash:renderDash, patients:renderPatients, enroll:renderEnroll, scripts:renderScripts,
-    data:renderData, settings:renderSettings, detail:renderDetail, fu:renderFu})[v](arg);
+    ai:renderAI, data:renderData, settings:renderSettings, detail:renderDetail, fu:renderFu})[v](arg);
   window.scrollTo(0,0);
   updateHeader();
 }
@@ -1258,6 +1259,62 @@ function copyScript(id){
   if(s) copyText(s.body);
 }
 
+/* ---------------- AI 智能辅助 ---------------- */
+function renderAI(){
+  const patientsWithMeds = state.patients.filter(p=>(p.meds||[]).length);
+  const notReady = !aiReady();
+  const card=(fk)=>{
+    const f=AI_FEATURES[fk];
+    return `<div class="card"><h2>${f.icon} ${f.title}</h2>
+      ${fk==="drug"&&patientsWithMeds.length?`<div class="row" style="margin-bottom:6px">
+        <label class="f" style="margin:0 4px 0 0">从患者带入用药清单：</label>
+        <select id="ai_pick" onchange="aiPickMeds(this.value)" style="max-width:280px">
+          <option value="">— 选择患者 —</option>
+          ${patientsWithMeds.map(p=>`<option value="${p.id}">${esc(p.code)} ${esc(p.initials)}（${(p.meds||[]).length}种）</option>`).join("")}
+        </select></div>`:""}
+      <textarea id="ai_in_${fk}" placeholder="${esc(f.ph)}" style="min-height:90px"></textarea>
+      <div class="row" style="margin-top:8px">
+        <button class="btn" id="ai_btn_${fk}" onclick="runAI('${fk}')" ${notReady?"disabled":""}>生成草稿</button>
+        <span class="muted">${esc(f.tip)}</span>
+      </div>
+      <div class="script" id="ai_wrap_${fk}" style="display:none;margin-top:10px">
+        <div class="sh"><b>AI草稿（需药师审核后使用）</b>
+          <button class="btn sm" onclick="copyText(document.getElementById('ai_out_${fk}').textContent)">复制</button></div>
+        <div class="sb" id="ai_out_${fk}"></div>
+      </div></div>`;
+  };
+  view.innerHTML = `
+  <div class="card"><h2>AI 智能辅助（通义千问）</h2>
+    <p class="muted">由阿里云通义千问大模型提供草稿建议，帮助药师提效。当前状态：
+      ${aiReady()?`<span class="tag good">已启用（模型 ${esc(ai.model)}）</span>`
+        :`<span class="tag low">未启用</span> — 请先到 <a href="javascript:go('settings')">设置</a> 填写千问API密钥并开启。`}</p>
+    <div class="note"><b>使用须知：</b>①所有输出均为<b>草稿</b>，须经药师审核、按项目话术纪律修改后再使用，系统不会自动发送；②请勿在输入中包含患者<b>姓名、身份证号、电话</b>等身份信息（用药清单相互作用初筛仅需药名剂量频次）；③相互作用初筛仅为初筛，最终以药品说明书与药师/医师审方为准；④调用会将你输入的文本发送至阿里云通义千问服务，请遵守项目数据合规要求。</div>
+  </div>
+  ${notReady?`<div class="card"><p class="muted">配置千问密钥后即可使用以下三项功能：群答疑草稿生成、随访记录智能摘要、用药清单相互作用初筛。</p>
+    <button class="btn" onclick="go('settings')">前往设置配置密钥</button></div>`:""}
+  ${card("qa")}
+  ${card("fu")}
+  ${card("drug")}`;
+}
+function aiPickMeds(pid){
+  if(!pid) return;
+  const p=state.patients.find(x=>x.id===pid); if(!p) return;
+  const txt=(p.meds||[]).map(m=>`${m.name} ${m.dose} ${m.freq}${m.note?("（"+m.note+"）"):""}`).join("\n");
+  const el=document.getElementById("ai_in_drug"); if(el) el.value=txt;
+}
+async function runAI(fk){
+  const f=AI_FEATURES[fk];
+  const inp=(document.getElementById("ai_in_"+fk)?.value||"").trim();
+  if(!inp){ toast("请先输入内容"); return; }
+  const btn=document.getElementById("ai_btn_"+fk), wrap=document.getElementById("ai_wrap_"+fk), out=document.getElementById("ai_out_"+fk);
+  const old=btn.textContent; btn.disabled=true; btn.textContent="生成中…";
+  wrap.style.display=""; out.textContent="正在请求通义千问，请稍候…";
+  try{
+    out.textContent = await aiChat([{role:"system",content:f.sys},{role:"user",content:f.user(inp)}]);
+  }catch(e){ out.textContent="⚠ "+e.message; }
+  finally{ btn.disabled=false; btn.textContent=old; }
+}
+
 /* ---------------- 数据导出 ---------------- */
 function renderData(){
   const done2 = state.patients.filter(p=>p.fu2&&p.fu2.done).length;
@@ -1352,6 +1409,58 @@ function wipe(){
 
 
 /* ---------------- 云端加密备份（GitHub 私有仓库，端到端加密） ---------------- */
+/* =====================================================================
+   AI 智能辅助（通义千问 / OpenAI 兼容接口）
+   密钥仅存本机浏览器，不写入网页代码、不含在 JSON 备份与 CSV 导出中。
+   所有输出均为“草稿”，须经药师审核后使用；输入请勿包含患者姓名等身份信息。
+===================================================================== */
+const AI_KEY="ysgzt_ai_v1";
+let ai={base:"https://dashscope.aliyuncs.com/compatible-mode/v1", key:"", model:"qwen-plus", enabled:false};
+function loadAi(){ try{const r=localStorage.getItem(AI_KEY); if(r) ai=Object.assign(ai,JSON.parse(r));}catch(e){} }
+function saveAi(){ try{localStorage.setItem(AI_KEY,JSON.stringify(ai));}catch(e){} }
+function aiReady(){ return !!(ai.enabled && ai.key && ai.base && ai.model); }
+async function aiChat(messages, opts){
+  if(!ai.enabled) throw new Error("AI辅助未启用（请在【设置】中开启并填写千问API密钥）");
+  if(!ai.key)     throw new Error("未填写API密钥（请在【设置→AI智能辅助】中填写）");
+  const url=ai.base.replace(/\/+$/,"")+"/chat/completions";
+  const ctl=new AbortController(); const timer=setTimeout(()=>ctl.abort(),60000);
+  let r;
+  try{
+    r=await fetch(url,{method:"POST",signal:ctl.signal,
+      headers:{"Content-Type":"application/json","Authorization":"Bearer "+ai.key},
+      body:JSON.stringify({model:ai.model||"qwen-plus",messages,temperature:(opts&&opts.temperature!=null)?opts.temperature:0.4})});
+  }catch(e){ clearTimeout(timer); throw new Error(e.name==="AbortError"?"请求超时（60秒），请检查网络后重试":("网络错误："+e.message)); }
+  clearTimeout(timer);
+  if(!r.ok){ let m="HTTP "+r.status; try{const j=await r.json(); if(j.error&&j.error.message)m=j.error.message;}catch(e){}
+    throw new Error("调用失败："+m); }
+  const j=await r.json();
+  const txt=j&&j.choices&&j.choices[0]&&j.choices[0].message&&j.choices[0].message.content;
+  if(!txt) throw new Error("接口未返回内容");
+  return txt.trim();
+}
+/* 三个功能：system 提示体现项目话术纪律；user 包装药师输入 */
+const AI_DISCIPLINE="严格遵守项目纪律：不推荐或销售任何具体品牌药品；不建议患者自行调整处方药剂量或停药，一律引导咨询主诊医师/药师；不承诺疗效、不做诊断；遇胸痛不缓解、一侧肢体无力口角歪斜、严重皮疹伴憋气、疑似低血糖等紧急情况，先引导立即就医或拨打120。";
+const AI_FEATURES={
+  qa:{title:"群答疑草稿生成", icon:"💬",
+    ph:"粘贴/输入患者在微信群或私聊里的提问。例如：我血压正常了还用吃药吗？",
+    tip:"输出为可发送给患者的口语化草稿，请药师审核后再发。",
+    sys:"你是社区药师团队的用药科普助手，服务“老年人合理用药干预”项目。根据药师转述的患者提问，生成一段可直接发送给老年患者的**回复草稿**：口语化、通俗、简短、态度亲切；面向老年人，避免专业术语。"+AI_DISCIPLINE+"结尾提示如仍有疑问可随时找药师。只输出草稿正文，不要加解释或标题。",
+    user:t=>"患者提问："+t},
+  fu:{title:"随访记录智能摘要", icon:"📝",
+    ph:"输入随访通话要点（口语流水即可）。例如：这个月没什么不舒服，血压最近量是138/85，说有时候会忘吃降压药，提醒他用药盒了……",
+    tip:"输出为CRF格式随访记录草稿，请药师核对后录入。",
+    sys:"你是随访记录整理助手。把药师口述的随访通话要点，整理成结构化的随访记录草稿，条目固定为：①药物不良反应（有/无及描述）；②监测结果与达标情况；③新的用药相关问题；④本次强化教育要点；⑤下一步安排。语言简洁、客观、书面。要点中未提及的条目写“未提及”。不得编造未提供的信息，不做诊断结论。只输出整理后的记录。",
+    user:t=>"随访要点："+t},
+  drug:{title:"用药清单相互作用初筛", icon:"⚗️",
+    ph:"每行一种药（药名 剂量 频次），或从下方选患者一键带入。",
+    tip:"仅为初筛提示，最终以药品说明书和药师/医师审方为准。",
+    sys:"你是临床药师的用药审核助手。根据用药清单做**初步**的重复用药与药物相互作用提示，供药师参考。分点列出：可能的重复用药（同类叠加）、有临床意义的相互作用、需错开服药时间的组合；每条给出简要理由和建议动作。开头一句声明这是初筛提示、不能替代人工审方与说明书。"+AI_DISCIPLINE+"只针对所给药物分析，不编造清单中没有的药。若信息不足以判断，请说明。",
+    user:t=>"用药清单：\n"+t},
+};
+
+/* =====================================================================
+   云端加密备份（GitHub 私有仓库，端到端加密）
+===================================================================== */
 const CLOUD_KEY="ysgzt_cloud_v1";
 let cloud={repo:"",token:"",pass:"",auto:false,lastUp:"",lastMsg:""};
 function loadCloud(){ try{const r=localStorage.getItem(CLOUD_KEY); if(r) cloud=Object.assign(cloud,JSON.parse(r));}catch(e){} }
@@ -1456,19 +1565,21 @@ function renderSettings(){
     </div>
     <p class="muted" id="cloudmsg" style="margin-top:6px">${cloud.lastUp?("最近上传："+esc(cloud.lastUp)+"（"+esc(cloud.lastMsg)+"）"):"未配置时此功能完全关闭，数据仅存本机。"}</p>
   </div>
-  <div class="card"><h2>AI 智能辅助（预留，待项目组批准后启用）</h2>
-    <div class="disabledbox">
-      <div class="grid g2">
-        <div><label class="f">大模型API地址</label><input type="text" placeholder="待配置" disabled></div>
-        <div><label class="f">API密钥</label><input type="text" placeholder="待配置" disabled></div>
-      </div>
-      <div class="row" style="margin-top:8px">
-        <button class="btn" disabled>群答疑草稿生成</button>
-        <button class="btn" disabled>随访记录智能摘要</button>
-        <button class="btn" disabled>用药清单相互作用初筛</button>
-      </div>
+  <div class="card"><h2>AI 智能辅助（通义千问）</h2>
+    <div class="note"><b>说明：</b>接入阿里云通义千问，为药师提供三项草稿建议（群答疑草稿、随访记录摘要、用药清单相互作用初筛）。<b>API密钥仅保存在本机浏览器</b>，不写入网页代码、不含在JSON备份与CSV导出中，怀疑泄露请到阿里云百炼控制台停用重建。所有输出均为草稿，须经药师审核后使用；系统不自动发送。当前的量表计分、分层、话术匹配仍为确定性规则，不依赖AI。<br><b>获取密钥：</b>登录阿里云百炼(bailian.console.aliyun.com)开通模型服务→创建API-KEY（sk- 开头），并确保账号已开通对应模型。</div>
+    <div class="grid g3">
+      <div><label class="f">API地址（OpenAI兼容接口，一般无需改）</label><input type="text" id="a_base" value="${esc(ai.base)}" placeholder="https://dashscope.aliyuncs.com/compatible-mode/v1"></div>
+      <div><label class="f">模型</label><input type="text" id="a_model" list="a_models" value="${esc(ai.model)}" placeholder="qwen-plus">
+        <datalist id="a_models"><option value="qwen-plus"><option value="qwen-max"><option value="qwen-turbo"><option value="qwen-long"></datalist></div>
+      <div><label class="f">API密钥（sk- 开头，仅存本机）</label><input type="password" id="a_key" value="${esc(ai.key)}" placeholder="sk-xxxxxxxx"></div>
     </div>
-    <p class="muted" style="margin-top:8px">规划功能：①患者群提问→AI按话术库口径生成回复草稿→药师审核（含禁语校验）后发送；②随访通话要点→AI整理为CRF格式记录；③现用药清单→相互作用/重复用药初筛提示。启用前提：项目组确定合规的大模型服务、数据脱敏规则与审核流程。当前版本所有计分、分层、话术匹配均为确定性规则，符合研究标准化要求，不依赖AI。</p>
+    <div class="row" style="margin-top:8px">
+      <label class="ck"><input type="checkbox" id="a_enabled" ${ai.enabled?"checked":""}>启用 AI 智能辅助</label>
+      <span class="spacer"></span>
+      <button class="btn" onclick="saveAiCfg()">保存配置</button>
+      <button class="btn sec" onclick="testAI()">测试连接</button>
+    </div>
+    <p class="muted" id="aimsg" style="margin-top:6px">${aiReady()?"已启用，可在【AI辅助】页使用。":"未启用时【AI辅助】页功能不可点击。"}</p>
   </div>
   <div class="card"><h2>关于</h2>
     <p class="muted">老年人合理用药干预·药师工作台 离线版V1.1（2026-07-14）。依据：《研究病例记录表》V2.0、《附件2 老年人合理用药干预措施方案及标准化话术》V1.0。量表计分规则：41题总分41–205，平均分≥4良好、3~4中等、≤3不足；总分≥157或平均分≥3.82达标；全部反向题由系统自动赋值。数据仅存本机浏览器，请定期备份。<br>图文版操作手册：<a href="https://fsclyx.github.io/yaoshi-gongzuotai/%E8%8D%AF%E5%B8%88%E5%B7%A5%E4%BD%9C%E5%8F%B0%E4%BD%BF%E7%94%A8%E6%89%8B%E5%86%8C.docx" target="_blank">点此下载《药师工作台使用手册》(Word)</a>。</p>
@@ -1478,6 +1589,30 @@ function saveSettings(){
   const g=id=>document.getElementById(id).value.trim();
   state.settings={centerNo:g("s_no"),centerName:g("s_name"),pharmacist:g("s_ph"),phone:g("s_tel"),pushStart:g("s_push")};
   save(); updateHeader(); toast("设置已保存");
+}
+function setAiMsg(t){ const el=document.getElementById("aimsg"); if(el) el.textContent=t; }
+function saveAiCfg(){
+  const g=id=>document.getElementById(id).value.trim();
+  ai.base=g("a_base")||"https://dashscope.aliyuncs.com/compatible-mode/v1";
+  ai.model=g("a_model")||"qwen-plus";
+  ai.key=g("a_key");
+  ai.enabled=document.getElementById("a_enabled").checked;
+  saveAi();
+  setAiMsg(aiReady()?"配置已保存并启用，可在【AI辅助】页使用。":"配置已保存（未勾选启用或缺少密钥，功能暂不可用）。");
+  toast("AI配置已保存（仅存本机浏览器）");
+}
+async function testAI(){
+  const g=id=>document.getElementById(id).value.trim();
+  const key=g("a_key");
+  if(!key){ setAiMsg("请先填写API密钥再测试。"); return; }
+  setAiMsg("正在测试连接（约需几秒）…");
+  const saved=Object.assign({},ai);
+  ai.base=g("a_base")||saved.base; ai.model=g("a_model")||"qwen-plus"; ai.key=key; ai.enabled=true;
+  try{
+    const t=await aiChat([{role:"user",content:"只回复两个字：正常"}],{temperature:0});
+    setAiMsg("✔ 连接成功，模型（"+esc(ai.model)+"）返回："+esc(t.slice(0,30))+"。如需长期使用请勾选“启用”并保存配置。");
+  }catch(e){ setAiMsg("✗ 连接失败："+esc(e.message)); }
+  finally{ ai=saved; } // 测试不改变已保存配置，需点“保存配置”生效
 }
 
 /* ---------------- 自测（控制台调用 __selftest()） ---------------- */
@@ -1514,7 +1649,7 @@ window.__selftest = function(){
 };
 
 /* 启动 */
-load(); loadCloud(); updateHeader(); renderDash();
+load(); loadCloud(); loadAi(); updateHeader(); renderDash();
 </script>
 </body>
 </html>
