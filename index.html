@@ -1,0 +1,992 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>老年人合理用药干预 · 药师工作台</title>
+<style>
+:root{
+  --blue:#1f6fb2; --blue-d:#15507f; --blue-l:#e8f1f9;
+  --green:#2e8b57; --amber:#b45309; --red:#b91c1c;
+  --ink:#1f2937; --muted:#6b7280; --line:#d1d5db; --bg:#f3f4f6; --card:#ffffff;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Microsoft YaHei","PingFang SC",sans-serif;background:var(--bg);color:var(--ink);font-size:15px}
+header{background:var(--blue-d);color:#fff;padding:12px 20px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+header h1{font-size:19px;font-weight:700}
+header .sub{font-size:12px;opacity:.85}
+nav{background:var(--blue);display:flex;flex-wrap:wrap;padding:0 12px}
+nav button{background:none;border:none;color:#dbeafe;padding:12px 18px;font-size:15px;cursor:pointer;border-bottom:3px solid transparent}
+nav button.active{color:#fff;font-weight:700;border-bottom-color:#fff;background:rgba(255,255,255,.08)}
+main{max-width:1080px;margin:18px auto;padding:0 14px 60px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin-bottom:14px}
+.card h2{font-size:17px;color:var(--blue-d);margin-bottom:10px;border-left:4px solid var(--blue);padding-left:8px}
+.card h3{font-size:15px;margin:12px 0 6px;color:var(--ink)}
+.grid{display:grid;gap:12px}
+.g2{grid-template-columns:1fr 1fr}.g3{grid-template-columns:1fr 1fr 1fr}.g4{grid-template-columns:repeat(4,1fr)}
+@media(max-width:760px){.g2,.g3,.g4{grid-template-columns:1fr}}
+label.f{display:block;font-size:13px;color:var(--muted);margin-bottom:3px}
+input[type=text],input[type=number],input[type=date],select,textarea{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:6px;font-size:15px;font-family:inherit;background:#fff}
+textarea{min-height:60px;resize:vertical}
+.btn{display:inline-block;background:var(--blue);color:#fff;border:none;border-radius:7px;padding:9px 18px;font-size:15px;cursor:pointer;font-family:inherit}
+.btn:hover{background:var(--blue-d)}
+.btn.sec{background:#fff;color:var(--blue);border:1px solid var(--blue)}
+.btn.warn{background:var(--red)}
+.btn.sm{padding:5px 12px;font-size:13px;border-radius:6px}
+.btn:disabled{background:#9ca3af;cursor:not-allowed;border-color:#9ca3af;color:#eee}
+.tag{display:inline-block;padding:2px 10px;border-radius:12px;font-size:12.5px;font-weight:700}
+.tag.good{background:#d1fae5;color:#065f46}.tag.mid{background:#fef3c7;color:#92400e}.tag.low{background:#fee2e2;color:#991b1b}
+.tag.info{background:var(--blue-l);color:var(--blue-d)}
+.tag.grey{background:#e5e7eb;color:#374151}
+table.t{width:100%;border-collapse:collapse;font-size:14px}
+table.t th,table.t td{border:1px solid var(--line);padding:7px 9px;text-align:left;vertical-align:top}
+table.t th{background:#eef2f7}
+.qrow{display:flex;align-items:flex-start;gap:10px;padding:9px 6px;border-bottom:1px solid #eef0f3;flex-wrap:wrap}
+.qrow:nth-child(odd){background:#fafbfc}
+.qrow .qt{flex:1 1 380px;min-width:260px}
+.qrow .opts{display:flex;gap:4px;flex-wrap:wrap}
+.opts label{display:flex;align-items:center;gap:4px;border:1px solid var(--line);border-radius:6px;padding:5px 9px;cursor:pointer;font-size:13.5px;background:#fff;white-space:nowrap}
+.opts label:has(input:checked){background:var(--blue);color:#fff;border-color:var(--blue)}
+.opts input{accent-color:#fff}
+.qnum{color:var(--muted);font-size:12.5px}
+.missing{outline:2px solid var(--red);border-radius:6px}
+.script{background:#f6f8fa;border:1px solid var(--line);border-radius:8px;margin:10px 0;overflow:hidden}
+.script .sh{background:var(--blue-l);padding:8px 12px;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.script .sh b{color:var(--blue-d);font-size:14.5px}
+.script .sb{padding:10px 14px;white-space:pre-wrap;line-height:1.75;font-size:14.5px}
+.script .sn{padding:6px 14px 10px;font-size:12.5px;color:var(--amber)}
+.stat{display:flex;gap:12px;flex-wrap:wrap}
+.stat .s{flex:1 1 140px;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px;text-align:center}
+.stat .s b{display:block;font-size:26px;color:var(--blue-d)}
+.stat .s span{font-size:13px;color:var(--muted)}
+.bar{height:10px;background:#e5e7eb;border-radius:5px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--blue)}
+.bar.weak i{background:var(--red)}
+.muted{color:var(--muted);font-size:13px}
+.note{background:#fffbeb;border:1px solid #fcd34d;border-radius:8px;padding:10px 12px;font-size:13.5px;margin:8px 0}
+.steps{display:flex;gap:0;margin-bottom:14px;flex-wrap:wrap}
+.steps div{flex:1;text-align:center;padding:8px 4px;background:#e5e7eb;color:var(--muted);font-size:13.5px;border-right:2px solid #fff;min-width:110px}
+.steps div.on{background:var(--blue);color:#fff;font-weight:700}
+.steps div.done{background:#bfdbfe;color:var(--blue-d)}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.spacer{flex:1}
+.plist{width:100%;border-collapse:collapse}
+.plist td,.plist th{padding:9px 8px;border-bottom:1px solid #e5e7eb;font-size:14px;text-align:left}
+.plist tr:hover td{background:var(--blue-l);cursor:pointer}
+.chip{display:inline-block;background:#eef2f7;border:1px solid var(--line);border-radius:6px;padding:2px 8px;margin:2px;font-size:13px}
+.toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%);background:#111827;color:#fff;padding:10px 22px;border-radius:8px;font-size:14px;opacity:0;transition:.25s;pointer-events:none;z-index:99}
+.toast.show{opacity:.94}
+.due-warn{color:var(--amber);font-weight:700}.due-over{color:var(--red);font-weight:700}.due-ok{color:var(--green);font-weight:700}
+fieldset{border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin:10px 0}
+legend{font-size:14px;font-weight:700;color:var(--blue-d);padding:0 6px}
+.ck{display:inline-flex;align-items:center;gap:5px;margin:3px 10px 3px 0;font-size:14px;cursor:pointer}
+.searchbox{max-width:320px}
+.disabledbox{opacity:.55;pointer-events:none}
+</style>
+</head>
+<body>
+<header>
+  <h1>老年人合理用药干预 · 药师工作台</h1>
+  <span class="sub">基于药物素养的精准用药教育干预（配套CRF V2.0 / 附件2话术方案）· 离线版 V1.0</span>
+  <span class="spacer"></span>
+  <span class="sub" id="hdCenter"></span>
+</header>
+<nav id="nav">
+  <button data-v="dash" class="active">工作台</button>
+  <button data-v="patients">患者管理</button>
+  <button data-v="enroll">新增入组</button>
+  <button data-v="scripts">话术库</button>
+  <button data-v="data">数据导出</button>
+  <button data-v="settings">设置</button>
+</nav>
+<main id="view"></main>
+<div class="toast" id="toast"></div>
+
+<script>
+/* =====================================================================
+   数据定义（与《研究病例记录表》V2.0 及《附件2 干预方案与话术》一致）
+===================================================================== */
+const OPTS_ATT  = [["极为赞同",1],["赞同",2],["一般/不清楚",3],["不赞同",4],["极不赞同",5]];
+const OPTS_KNO  = [["极不赞同",1],["不赞同",2],["一般/不清楚",3],["赞同",4],["极为赞同",5]];
+const OPTS_BEHN = [["从不",5],["偶尔",4],["时常",3],["经常",2],["总是",1]];
+const OPTS_BEHP = [["从不",1],["偶尔",2],["时常",3],["经常",4],["总是",5]];
+
+const LIT_ITEMS = [
+ // 知识/态度题 1-21（极为赞同1 → 极不赞同5）
+ [1,"生病了应该尽量打针、输液",OPTS_ATT],
+ [2,"打针、输液等注射剂药品比口服药品更安全",OPTS_ATT],
+ [3,"越贵的药品越安全",OPTS_ATT],
+ [4,"越贵的药品越有效",OPTS_ATT],
+ [5,"购药时应看品牌和名气判断药品质量好坏",OPTS_ATT],
+ [6,"用药的品种越多效果越好",OPTS_ATT],
+ [7,"用药的疗程（时间）越长越好",OPTS_ATT],
+ [8,"保健品就是药品",OPTS_ATT],
+ [9,"吃过保健品可以减少药品的用量",OPTS_ATT],
+ [10,"任何口服药都可以用牛奶、咖啡或饮料送服",OPTS_ATT],
+ [11,"任何药物均可同时服用",OPTS_ATT],
+ [12,"用抗菌药物治疗感冒发烧",OPTS_ATT],
+ [13,"抗菌药就是消炎药",OPTS_ATT],
+ [14,"抗菌药物可以杀死任何细菌和病毒",OPTS_ATT],
+ [15,"当周围的人感冒发烧或生其他病时，可以服用抗菌药进行预防",OPTS_ATT],
+ [16,"服用非处方药不会有任何不良反应",OPTS_ATT],
+ [17,"所有的药品都可以在常温下保存",OPTS_ATT],
+ [18,"任何药品的储存无需考虑“光照”的影响",OPTS_ATT],
+ [19,"儿童（婴儿）均可服用成人药，只要适当减量即可",OPTS_ATT],
+ [20,"老年人因为身体机能较青壮年有所下降，服用药品应自行减量",OPTS_ATT],
+ [21,"无论男性或女性，在备孕期可以使用任何药品，无需考虑风险",OPTS_ATT],
+ // 知识题 22-25（极不赞同1 → 极为赞同5）
+ [22,"接种疫苗是预防一些疾病最有效、最经济的措施",OPTS_KNO],
+ [23,"药师可以为我是否需要服药，提供好的建议",OPTS_KNO],
+ [24,"药师可以为我如何正确服药，提供好的建议",OPTS_KNO],
+ [25,"家人或处于孕期或哺乳期的女性，使用任何药品前，都应查看“药品说明书禁忌症/特殊人群注意事项”，或咨询医生或药师",OPTS_KNO],
+ // 行为题 26-36（从不5 → 总是1）
+ [26,"根据自己的经验或是广告的宣传自行购买药品",OPTS_BEHN],
+ [27,"看病时，向医生点名要开某种药品",OPTS_BEHN],
+ [28,"在药店购买药品时听信营业员的建议",OPTS_BEHN],
+ [29,"吃西药的同时擅自选择中药服用",OPTS_BEHN],
+ [30,"服用已经超过有效期的药品",OPTS_BEHN],
+ [31,"无论何种剂型的药品，把药片掰开或是研碎后再吃",OPTS_BEHN],
+ [32,"在没有咨询医师或者药师情况下，将好几种药物混着吃",OPTS_BEHN],
+ [33,"处方药服药几天后，感觉没效果擅自更换药物",OPTS_BEHN],
+ [34,"为了使药物“快速起效”，初次服药时擅自加倍药量",OPTS_BEHN],
+ [35,"为了“巩固药物疗效”，疾病痊愈或达到用药疗程后，自行延长用药时间（多吃几天）",OPTS_BEHN],
+ [36,"当出现了药物不良反应，只是自行停药，不做任何其它处理（如咨询医生、药师或去医院、药店寻求帮助）",OPTS_BEHN],
+ // 行为正向题 37-41（从不1 → 总是5）
+ [37,"使用每种药品前都会仔细阅读药品说明书",OPTS_BEHP],
+ [38,"用药前仔细了解药品副作用以及出现副作用后的表现",OPTS_BEHP],
+ [39,"了解使用某个药物时的禁忌事项（喝酒、驾驶等）",OPTS_BEHP],
+ [40,"使用特殊装置的药品前会仔细阅读说明书中装置的使用方法",OPTS_BEHP],
+ [41,"当不明白药品如何使用时向药师咨询（如拨打用药咨询电话、前往用药咨询中心、咨询窗口药师、互联网药学问诊等途径）",OPTS_BEHP],
+];
+
+const OPTS_AMRS = [["从不",1],["有时",2],["经常",3],["总是",4]];
+const OPTS_AMRS_R = [["从不",4],["有时",3],["经常",2],["总是",1]];
+const AMRS_ITEMS = [
+ [1,"您会经常忘记服药吗？",OPTS_AMRS],
+ [2,"您会经常决定不想服药吗？",OPTS_AMRS],
+ [3,"您会经常忘记去开药吗？",OPTS_AMRS],
+ [4,"您通常会出现断药的情况吗？",OPTS_AMRS],
+ [5,"在看病这天，您会在看医生之前停用一剂本该服用的药吗？",OPTS_AMRS],
+ [6,"若您感觉疾病症状好转时，您会不按时服药吗？",OPTS_AMRS],
+ [7,"若您感觉身体有不舒服的话，您会不按时服药吗？",OPTS_AMRS],
+ [8,"您会经常因为疏忽而没有按时服药吗？",OPTS_AMRS],
+ [9,"您会经常根据自己的需要更改药物剂量吗（比如自行减少或增加药量）？",OPTS_AMRS],
+ [10,"若药品的服用频率超过每日一次，您会经常忘记服用吗？",OPTS_AMRS],
+ [11,"您会经常因为药物费用太高而推迟去开药吗？",OPTS_AMRS],
+ [12,"您会经常在药物用完之前，提前计划开药吗？（反向题，系统已自动处理计分）",OPTS_AMRS_R],
+];
+
+const DIMS = {
+ "给药途径的理解":[1,2],
+ "药物质量认知":[3,4,5],
+ "药物治疗常识":[6,7,8,9,10,11,16,22],
+ "抗菌药物使用常识":[12,13,14,15],
+ "用药风险意识":[17,18,19,20,21],
+ "药师角色认知":[23,24,25],
+ "药物购买行为":[26,27,28,29],
+ "自我药疗风险行为":[30,31,32,33,34,35,36],
+ "使用药品说明书的能力":[37,38,39,40,41],
+};
+const DIM_TIPS = {
+ "给药途径的理解":"纠正“输液好得快”观念：能口服不注射，能肌注不输液；输液风险高于口服。〔①④〕",
+ "药物质量认知":"对症才是好药；通过一致性评价的仿制药与原研药疗效相当，不以价格、品牌、广告判断。〔①④〕",
+ "药物治疗常识":"保健品不能治病、不能替药；温开水送服；联合用药须经医师药师确认；疫苗是最经济有效的预防手段。〔①④⑥〕",
+ "抗菌药物使用常识":"抗菌药不等于消炎药，对病毒无效；须凭处方使用；滥用导致耐药。〔①④〕",
+ "用药风险意识":"按说明书条件储存（遮光、冷藏）；老年人剂量调整须由医师决定，不自行减量。〔①②〕",
+ "药师角色认知":"介绍用药咨询窗口、咨询电话、微信群等免费咨询渠道，遇用药疑问先找药师。〔①〕",
+ "药物购买行为":"正规渠道购药，不信广告；就诊时出示完整用药清单，避免重复用药与相互作用。〔④⑥〕",
+ "自我药疗风险行为":"任何加量、换药、停药先咨询医师药师；定期清理过期药；不适及时报告不硬扛。〔③④〕",
+ "使用药品说明书的能力":"教会重点看四处：用法用量、禁忌、不良反应、注意事项；看不懂就问药师。〔②〕",
+};
+
+const INTERVENTIONS = ["①药物素养知识教育","②合理用药技能提升","③药物不良反应顾虑教育","④用药错误观念纠正","⑤调整服药时间","⑥调整服药顺序或服药间隔","⑦增加用药提醒","⑧其他干预措施"];
+
+const LEVELS = {
+ good:{name:"良好",cls:"good",cond:"平均分≥4",script:"B1",defaults:[0,1],
+   focus:"药物知识深化与并发症预防（知识需求）；优化用药习惯与工具（方法需求）",
+   fu1:"回顾自测记录，讲解指标趋势与达标差距；深化并发症预防知识；核查用药记录工具使用",
+   fu2:"总结3个月指标变化；鼓励长期保持自我管理；邀请在群内分享经验"},
+ mid:{name:"中等",cls:"mid",cond:"平均分3～4",script:"B2",defaults:[0,2,3],
+   focus:"药物副作用辨识与巩固信念（知识需求）；强化长期用药工具的持续使用（方法需求）",
+   fu1:"复问不良反应识别要点；核查药盒/提醒工具是否坚持使用；纠正仍存在的错误观念",
+   fu2:"复核长期用药信念（抽问“指标正常能不能停药”）；巩固工具使用习惯"},
+ low:{name:"不足",cls:"low",cond:"平均分≤3",script:"B3",defaults:[0,1,3,4,6],
+   focus:"疾病与用药的基础认知（知识需求）；建立固定用药习惯与工具使用规范（方法需求）；加强家庭成员的外部监督与管理（社会支持需求）",
+   fu1:"用教回法复述“三件事”；逐格检查药盒使用与漏服情况；与家属核对提醒执行情况",
+   fu2:"现场协助完成量表复测；再次演示分装；未达标者与家属共同制定下一步督导安排"},
+};
+function levelOf(avg){ if(avg>=4) return "good"; if(avg>3) return "mid"; return "low"; }
+
+const DISEASES = ["高血压","糖尿病","冠心病","脑卒中","高血脂","高尿酸血症或痛风","房颤","哮喘","心力衰竭","其他"];
+
+/* ---------------- 话术库（源自《附件2》） ---------------- */
+const SCRIPTS = [
+{id:"A1",cat:"入组",title:"项目介绍与知情同意（面对面照读）",body:`“您好，叔叔/阿姨！我是咱们【社区卫生服务中心名称】的药师【姓名】。我们正在开展北京市卫健委组织的老年人合理用药指导项目，目的是帮助像您一样长期吃药的老年朋友，把药吃得更明白、更安全。
+参加是自愿、免费的，主要有这么几件事：今天请您做一份用药情况问卷；之后我会根据您的情况给您做用药指导；再请您加入我们的患者微信群，群里每周有药师讲用药知识；入组后第1个月和第3个月，我会再联系您各随访一次，每次十来分钟。
+您的个人信息我们严格保密，只用于这项工作；您随时可以退出，不影响您正常看病开药。如果您同意参加，请在这份知情同意书上签字。您还有什么想问我的吗？”`,
+note:"确认符合全部入组标准后再签署知情同意书；一式两份，一份交患者留存。"},
+{id:"A2",cat:"入组",title:"量表施测引导（面对面照读）",body:`“下面我来问您一些关于用药看法和习惯的问题，一共41道，大概15到20分钟。这不是考试，没有对错，您平时怎么想、怎么做，就怎么回答。
+每道题我念给您听，看法类的题，您从‘极为赞同、赞同、一般或不清楚、不赞同、极不赞同’里选一个；习惯类的题，从‘从不、偶尔、时常、经常、总是’里选一个。哪道题没听清，您随时叫我再念一遍。”`,
+note:"按原顺序逐题询问、逐字念题（含反向题）；患者答“不知道”记“一般/不清楚”；本系统自动完成反向题赋值与计分分层。"},
+{id:"A3",cat:"入组",title:"入群邀请（面对面照读）",body:`“为了平时也能帮到您，我们建了患者微信群，群名叫‘老年人合理用药干预患者群’。群里每周药师发一期用药小知识；您平时用药有拿不准的，也可以在群里问，药师看到都会回复。
+来，我帮您扫这个二维码入群。进群后请把群昵称改成‘姓名＋社区’，方便我们认出您。要是您用微信不方便，可以让家里人入群，替您看消息。”`,
+note:"扫码入群后当场协助修改群昵称；素养不足层患者务必落实家属入群。"},
+{id:"B1",cat:"首次干预",title:"良好层（≥4分）首次干预",body:`【开场与结果反馈】“叔叔/阿姨，您的问卷结果很好，说明您平时用药讲究、懂得也多，这个好习惯要保持。今天我帮您把用药再往细里理一理，重点说说怎么把病控制得更稳、预防并发症。”
+【教育要点】“您的血压（血糖、血脂）控制目标，要以您主诊医生定的为准。长期把指标控制在目标范围里，最大的好处是预防心梗、脑梗、肾损害这些并发症——药不是白吃的，吃的是‘保险’。咱们把您现在吃的药一样一样过一遍……（结合用药清单逐一讲解；如需调整服药时间或间隔，先与主诊医师确认。）”
+【行为约定】“咱们约个事：您继续按时吃药，每周至少测【次数】次血压（血糖），记在记录本上，随访时咱们一起看趋势。手机会设提醒吗？我帮您设上。”
+【结束语】“您懂得多，群里有人问问题，也欢迎您现身说法。有问题随时在群里@我，第1个月我再联系您。”`,
+note:"常用勾选：①②；涉及时间/间隔调整加勾⑤⑥，设置提醒加勾⑦。"},
+{id:"B2",cat:"首次干预",title:"中等层（3～4分）首次干预",body:`【开场与结果反馈】“叔叔/阿姨，您的问卷结果属于中等水平，用药的大方向是对的，但有几个容易踩坑的地方，我给您指一指，帮您把最后这几步补齐。”
+【教育要点】“第一，说说您在吃的这几种药，可能出现哪些不舒服：（逐药讲常见不良反应的表现）。记住一条：真出现不舒服，先给我打电话或在群里说，别自己把药一停了之——多数情况有办法处理，擅自停药反而危险。第二，（结合失分维度纠正观念，例）血压正常是药‘压’住的结果，不是病好了；自己停药，血压会反弹，反弹几次血管最受伤。第三，保健品不能代替药，广告说得再好也不能。”
+【行为约定】“您这个药盒（提醒闹钟）要天天用，别三天打鱼两天晒网。咱们约定：每周日晚上把下一周的药分好格，我随访时要‘检查作业’的。”
+【结束语】“群里每周的用药小课堂您记得看，都是给咱们量身准备的。有事随时找我，第1个月我再联系您。”`,
+note:"常用勾选：①③④；工具督导加勾②⑦。"},
+{id:"B3",cat:"首次干预",title:"不足层（≤3分）首次干预（含家属沟通）",body:`【开场与结果反馈】“叔叔/阿姨，从问卷看，咱们有些用药的基本常识还要一起补一补。不着急，我今天就给您讲最要紧的三件事，您听我慢慢说。”
+【教育要点·三件事】“第一件：药要每天固定时间吃，不漏、不多吃。咱们把时间定死：早饭后【时间】、晚饭后【时间】。第二件：吃药后有任何不舒服，先给我或您的医生打电话，千万别自己停药、换药。我的电话写在这张卡上。第三件：保健品不是药，不能替药，也不能因为吃了保健品就把药减量。”
+【工具演示】“这个药盒一格是一顿药，咱们现在就把这一周的药一起分进去。（演示分装）这张大字卡上写着您每种药叫什么、管什么、一次吃几片、什么时候吃，就贴在药盒边上。手机闹钟我给您设到每天【时间】。”
+【教回确认】“为了确认我讲明白了，麻烦您用自己的话说说，刚才那三件事是什么？（患者复述，遗漏处再讲一遍）”
+【家属沟通】“（对家属）麻烦您每天提醒老人按点吃药，每周检查一次药盒有没有漏格；老人说不舒服，先别让他自己停药，给我打电话【电话】或就近就诊。这个微信群也请您加一下，替老人看消息。”
+【结束语】“咱们不贪多，就把这三件事做好。过两个星期我给您打个电话问问情况，第1个月正式随访我再来。”`,
+note:"常用勾选：①②④⑤⑦；家属协同在⑧注明“家属协同管理”。语速放慢，全程使用教回法。"},
+{id:"C1",cat:"微信群",title:"入群欢迎语（新成员入群时发送）",body:`欢迎您加入“老年人合理用药干预患者群”！我们是北京市卫健委老年人合理用药指导项目的药师团队。在这个群里：每周有一期【用药小课堂】；您用药中有不明白的，随时提问，值班药师会尽快回复。请先将群昵称改为“姓名＋社区”，并阅读群公告。祝您健康！`},
+{id:"C2",cat:"微信群",title:"群公告与群规（置顶公告）",body:`【群公告】本群为“老年人合理用药干预患者群”，由项目组药师管理，仅用于合理用药科普与咨询。请各位注意：
+1. 群内回复仅供参考，不能代替医生的诊断和处方；调整用药请先咨询您的主诊医师。
+2. 如出现胸痛不缓解、呼吸困难、一侧肢体无力、口角歪斜、意识不清、服药后全身皮疹伴憋气等紧急情况，请立即拨打120或就近就医，不要在群里等回复。
+3. 群内咨询由值班药师在每天【时间段】回复，其余时间的提问次日回复。
+4. 涉及个人详细病情，建议私信药师，保护您的隐私。
+5. 请勿发布广告、售药链接、募捐及未经证实的“养生偏方”，违者将被移出群聊。`},
+{id:"W1",cat:"群推送",title:"第1周 · 给药途径",body:`【用药小课堂·第1期】能吃药，不打针；能打针，不输液。
+不少老人觉得“输液好得快”。其实输液的药直接进血管，一旦过敏或输得太快，风险比吃药大得多，心脏不好的老人还可能加重心衰。世界卫生组织提倡：能口服就不注射。医生判断需要输液的咱们配合，但别自己主动要求输液。
+互动：您以前是不是也觉得“输液好得快”？欢迎在群里说说。`},
+{id:"W2",cat:"群推送",title:"第2周 · 药品质量认知",body:`【用药小课堂·第2期】贵药不等于好药，对症才是好药。
+药不是越贵越好、越有名越好。同样成分、通过国家一致性评价的仿制药，疗效和原研药相当，价格却便宜不少。选药看的是适不适合您的病情，请遵医嘱，不要只认贵的、只认广告里的。
+互动：您买药时最看重什么？价格、牌子还是医生建议？`},
+{id:"W3",cat:"群推送",title:"第3周 · 药物治疗常识",body:`【用药小课堂·第3期】保健品不是药，牛奶咖啡别送药。
+保健品不能治病，更不能代替药；吃了保健品也不能自己把药减量。吃药请用温开水送服，牛奶、咖啡、浓茶、果汁都可能影响药效。另外提醒：疫苗是预防疾病最有效、最省钱的办法，流感疫苗、肺炎疫苗请留意社区接种通知。
+互动：您家里有没有“当药吃”的保健品？说出来，药师帮您把把关。`},
+{id:"W4",cat:"群推送",title:"第4周 · 自我药疗风险",body:`【用药小课堂·第4期】这五件事，千万别做！
+①过期药别吃；②感觉没效果，别自己换药、加量；③病好了，别自己多吃几天“巩固巩固”；④几种药别自己混着搭配吃；⑤吃药后不舒服，别只是自己停药——请先联系药师或医生。
+互动：这五件事，您中过几条？下周我们教您看说明书，很多坑就能躲开。`},
+{id:"W5",cat:"群推送",title:"第5周 · 看懂说明书",body:`【用药小课堂·第5期】三分钟看懂药品说明书。
+拿到新药，重点看四处：①用法用量——一次几片、一天几次、饭前还是饭后；②禁忌——哪些人不能吃；③不良反应——可能有什么不舒服，心里有数不慌张；④注意事项——能不能喝酒、影不影响开车。字太小看不清、看不懂的，拍照发群里，药师帮您看。
+互动：现在就找一盒常吃的药，试试找到“用法用量”，找到的扣个1。`},
+{id:"W6",cat:"群推送",title:"第6周 · 抗菌药物",body:`【用药小课堂·第6期】“消炎药”不能随便吃。
+阿莫西林、头孢这类抗菌药，不等于消炎药，对感冒病毒没有用。感冒发烧就翻出抗菌药来吃、家人感冒自己先吃点“预防”，都是错误做法，吃多了细菌会耐药，将来真感染了反而无药可用。抗菌药一定要凭医生处方使用。
+互动：您家药箱里是不是也存着头孢“备用”？`},
+{id:"W7",cat:"群推送",title:"第7周 · 储存与用药风险",body:`【用药小课堂·第7期】家庭小药箱四步整理法。
+①看储存条件：写着“遮光”“冷藏（2～8℃）”的照做，没开封的胰岛素放冰箱冷藏室；②药放原包装里，别把几种药混在一个瓶里；③放在孩子够不到的地方；④每3个月清一次过期药。再提醒一句：年纪大了要减药量的话，得医生说了算，咱们不自己减。
+互动：本周末给家里药箱做个大扫除，清出的过期药拍照打卡！`},
+{id:"W8",cat:"群推送",title:"第8周 · 购药行为",body:`【用药小课堂·第8期】买药认准正规渠道，加药先问医生药师。
+不要凭广告和“邻居说好”自行买药；看病时也不必点名让医生开某种“神药”，把症状说清楚就好。药店店员推荐时，多问一句执业药师。正在吃西药，又想加中药或亲友推荐的药？先把现在吃的药单子发给药师或拿给医生看，避免重复用药、药物“打架”。
+互动：把您在吃的所有药拍张“全家福”发上来，药师帮您查查有没有重复。`},
+{id:"W9",cat:"群推送",title:"第9周 · 药师角色与复测动员",body:`【用药小课堂·第9期】用药有疑问，记得找药师。
+该不该吃、怎么吃、能不能一起吃——这些都可以问药师，而且免费：医院用药咨询窗口、社区药师、本群的项目药师，都是您的“用药参谋”。近期药师会陆续联系大家做3个月随访和问卷复测，题目和入组时一样，如实回答就好，看看这三个月咱们一起进步了多少。本群之后继续保留，随时为您服务。
+互动：这9期小课堂，您印象最深的是哪一期？`},
+{id:"C4-1",cat:"微信群",title:"服药提醒（每周1次，建议周一上午）",body:`【温馨提醒】各位叔叔阿姨早上好！新的一周开始了，提醒三件事：①今天把本周的药分进药盒；②看看哪种药只剩一周的量了，提前去开，别断药；③换季变天，更要按时吃药、按时测血压血糖。祝大家一周健康！`},
+{id:"C4-2",cat:"微信群",title:"随访预告（随访周前发送）",body:`【随访通知】本周起，药师将陆续给大家打电话（或微信联系）做第【一/二】次随访，来电号码为【号码】，请留意接听。随访就是聊聊最近吃药的情况、有没有不舒服、血压血糖控制得怎么样，大约10分钟。感谢配合！`},
+{id:"C4-3",cat:"微信群",title:"复测动员（第3个月随访前发送）",body:`【问卷复测】感谢大家三个月来的坚持！为了解这段时间的效果，药师将请您再做一次入组时的问卷，题目一样，按您现在的真实想法和习惯回答就好，大约15分钟。您认真填的每一份问卷，都是这项工作最重要的成果。`},
+{id:"Q1",cat:"群答疑",title:"“我血压（血糖）正常了，能停药吗？”",body:`建议回复：“指标正常，正说明药在起作用，不是病好了。自己停药很容易反弹，反复波动最伤血管，严重的会诱发心梗、脑梗。想减药停药，请带上您的监测记录去找主诊医生评估，医生点头才能调。”`},
+{id:"Q2",cat:"群答疑",title:"“××保健品能不能代替降压药（降糖药）？”",body:`建议回复：“不能。保健品不是药品，没有治疗作用，一停正规药，血压血糖就会失控。药照吃；这个保健品您要是想吃，把名字和成分拍给我，我帮您看看会不会和药‘打架’。”`},
+{id:"Q3",cat:"群答疑",title:"“今天忘吃药了，怎么办？”",body:`建议回复：“别急，也千万别下次吃双倍。一般原则：想起来时离下次吃药还早，就把这次补上；快到下次吃药时间了，这次就跳过，按原时间吃下一次。不过不同的药处理不一样，您把药名发我，我告诉您这个药具体怎么办。”`},
+{id:"Q4",cat:"群答疑",title:"“药片太大咽不下，能掰开、碾碎吗？”",body:`建议回复：“有的能、有的绝对不能。药盒上写着‘缓释’‘控释’‘肠溶’字样的，一般不能掰不能碾，否则药量一下子全释放出来，很危险。把药盒拍照发我，我帮您看这个药能不能掰、咽不下还有什么别的办法。”`},
+{id:"Q5",cat:"群答疑",title:"“吃了药胃不舒服（头晕），是不是药有问题？”",body:`建议回复：“谢谢您及时说！请先告诉我三件事：吃的哪种药、什么时候开始不舒服、现在严重不严重。轻微不适先别自己停药，我了解后告诉您怎么处理；要是症状明显或越来越重，请尽快去医院，把正在吃的药盒或药单带上。”`},
+{id:"Q6",cat:"群答疑",title:"“中药和西药能一起吃吗？”",body:`建议回复：“不建议自己搭配。有些中药和西药会相互影响。您把在吃的西药和想加的中药名单发给我，我帮您看看；一般建议两类药间隔1～2小时吃，具体以医生药师的意见为准。”`},
+{id:"Q7",cat:"群答疑",title:"“两家医院开的药，会不会重复？”",body:`建议回复：“很有可能，感冒药、止痛药和同类降压药最容易重复。把两边开的药盒都拍照发我，我帮您理一张‘用药清单’；以后去任何医院看病都带上这张清单，医生一看就明白，最保险。”`},
+{id:"Q8",cat:"群答疑",title:"“群里给推荐个好药呗？”",body:`建议回复：“咱们群有规定：不推荐、不销售任何具体品牌的药品，用什么药得由医生根据您的病情决定。您把情况跟我说说，我告诉您该挂哪个科、见了医生重点说什么，这样开出来的药才真正适合您。”`},
+{id:"C6",cat:"群答疑",title:"紧急情况转诊（群内或私信）",body:`“叔叔/阿姨，您说的这个情况（胸痛持续不缓解／一侧胳膊腿没劲、口角歪斜、说话不清楚／血压高于180／出冷汗心慌怀疑低血糖／服药后全身皮疹伴憋气等），不能再等了。请立即拨打120，或让家人马上送您去医院急诊，把正在吃的药带上或拍照带走。到医院后请家人在群里说一声，我们继续跟进。”`,
+note:"凡涉急症，一律先引导就医、再做记录；事后在CRF不良反应或计划外就诊处如实登记，并报告分中心负责人。"},
+{id:"D1",cat:"随访",title:"第1个月随访脚本（条目顺序与CRF一致）",body:`【开场】“您好，请问是【姓名】叔叔/阿姨吗？我是【社区】的药师【姓名】，上个月您参加了合理用药项目，现在方便聊几分钟吗？我问问您最近吃药的情况。”
+【1.不良反应】“这一个月，吃药后有没有出现过不舒服？比如头晕、胃不舒服、皮疹、干咳、腿肿这些？”（如有：问清表现、开始时间、严重程度、处理方式；需要就医的按话术C6引导。）
+【2.监测与达标】“最近量血压（血糖、血脂）了吗？最近一次是多少？”（记录数值与达标情况；未监测者动员本周监测。）
+【3.新问题】“这一个月，吃药上有没有碰到新问题？比如新加了药、开药不方便、药吃着拿不准的？”
+【4.分层强化】（按患者分层实施重点强化教育，并如实勾选干预措施。）
+【结束】“好，今天就问这些。群里每周的用药小课堂记得看。到第3个月我再联系您做最后一次随访，到时候还要请您再填一次问卷。谢谢您，再见！”`,
+note:"随访完成当日录入本系统；未接通者按话术D3处理并记录联系日期。"},
+{id:"D2",cat:"随访",title:"第3个月结题随访脚本（条目顺序与CRF一致）",body:`【开场】“【姓名】叔叔/阿姨您好！三个月很快，今天是咱们最后一次正式随访，内容多一点，大约30分钟，辛苦您配合。”
+【1.不良反应】询问自上次随访以来有无药物不良反应。
+【2.监测与达标】记录最近一次监测结果及3个月达标情况；冠心病患者加问心绞痛发作。
+【3.计划外就诊】“这三个月，除了正常开药，有没有临时去过医院？门诊、急诊还是住院？为什么去的？调药了吗？大概花了多少钱（含医保报销部分）？”
+【4.现用药核对】“把您现在吃的药都带来了吗？咱们一样一样对一遍。”
+【5.量表复测】按话术A2引导，完成AMRS量表与药物素养量表复测（在本系统录入，自动计分）。
+【6.满意度】“最后三个问题，请您答‘是’或‘否’：①通过药师的帮助，您觉得达到治疗目标了吗？②通过这项研究，您觉得自己的健康状况和幸福感有提高吗？③您愿意把这种服务推荐给其他老年人吗？”
+【结题感谢】“咱们三个月的随访就全部完成了，特别感谢您的坚持和支持！微信群继续保留，您以后用药有问题，随时在群里找我们。祝您身体健康！”`,
+note:"复测须与基线同一量表、同一施测方式；当日完成录入与CRF“临床试验总结”。"},
+{id:"D3",cat:"随访",title:"失访挽回",body:`D3-1 微信留言：“【姓名】叔叔/阿姨您好，我是社区药师【姓名】。这两天给您打电话没接通，有点惦记您的用药情况。看到消息请回个电话【号码】，或在群里说一声，谢谢您！”
+D3-2 电话（换时段再拨）：“您好，我是社区药师【姓名】，之前联系您没找到人。耽误您两分钟，把随访做了就好，您看现在方便，还是我晚上再打给您？”`,
+note:"同一随访窗内不同日期、不同时段至少联系3次并记录；3次未果且家属渠道无法联系，方可记失访。"},
+];
+
+/* =====================================================================
+   状态与存储
+===================================================================== */
+const STORE_KEY = "ysgzt_v1";
+let state = {settings:{centerNo:"",centerName:"",pharmacist:"",phone:"",pushStart:""},patients:[]};
+let storageOK = true;
+function load(){
+  try{ const raw = localStorage.getItem(STORE_KEY); if(raw) state = JSON.parse(raw); }
+  catch(e){ storageOK = false; }
+}
+function save(){
+  try{ localStorage.setItem(STORE_KEY, JSON.stringify(state)); }
+  catch(e){ storageOK = false; toast("警告：本机存储不可用，数据仅保存在内存中，请及时导出备份！"); }
+}
+function toast(msg){
+  const t = document.getElementById("toast");
+  t.textContent = msg; t.classList.add("show");
+  clearTimeout(t._h); t._h = setTimeout(()=>t.classList.remove("show"), 2600);
+}
+function esc(s){ return String(s??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+function copyText(txt){
+  const done = ()=>toast("已复制到剪贴板");
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(txt).then(done).catch(()=>fallbackCopy(txt,done));
+  } else fallbackCopy(txt,done);
+}
+function fallbackCopy(txt,done){
+  const ta=document.createElement("textarea"); ta.value=txt; document.body.appendChild(ta);
+  ta.select(); try{document.execCommand("copy"); done();}catch(e){toast("复制失败，请手动选择文本");}
+  document.body.removeChild(ta);
+}
+function fmtDate(d){ if(!d) return ""; const x=new Date(d); const p=n=>String(n).padStart(2,"0"); return `${x.getFullYear()}-${p(x.getMonth()+1)}-${p(x.getDate())}`; }
+function addDays(dateStr,n){ const d=new Date(dateStr); d.setDate(d.getDate()+n); return d; }
+function today(){ return fmtDate(new Date()); }
+
+/* =====================================================================
+   计分
+===================================================================== */
+function scoreLit(vals){ // vals: array41 of score values(1-5)
+  const total = vals.reduce((a,b)=>a+b,0);
+  const avg = total/41;
+  const lv = levelOf(avg);
+  const dims = {};
+  for(const [name,items] of Object.entries(DIMS)){
+    const s = items.reduce((a,i)=>a+vals[i-1],0);
+    dims[name] = +(s/items.length).toFixed(2);
+  }
+  return {total, avg:+avg.toFixed(2), level:lv, pass:(total>=157||avg>=3.82), dims};
+}
+function scoreAmrs(vals){ return vals.reduce((a,b)=>a+b,0); } // 12-48，得分越低依从性越好
+
+/* 随访窗口：入组后第1个月（30±7天）、第3个月（90±7天） */
+function fuStatus(p, which){
+  const fu = which===1? p.fu1 : p.fu2;
+  if(fu && fu.done) return {code:"done",label:"已完成（"+fu.date+"）",cls:"due-ok"};
+  const base = which===1? 30 : 90;
+  const open = addDays(p.enrollDate, base-7), close = addDays(p.enrollDate, base+7);
+  const now = new Date(today());
+  if(now < open) return {code:"pending",label:"未到期（窗口 "+fmtDate(open)+" ~ "+fmtDate(close)+"）",cls:"muted"};
+  if(now <= close) return {code:"due",label:"窗口期内，应随访（截止 "+fmtDate(close)+"）",cls:"due-warn"};
+  return {code:"over",label:"已超窗（"+fmtDate(close)+"），请尽快补访并说明原因",cls:"due-over"};
+}
+
+/* =====================================================================
+   视图路由
+===================================================================== */
+const view = document.getElementById("view");
+let current = "dash";
+document.getElementById("nav").addEventListener("click",e=>{
+  if(e.target.dataset.v) go(e.target.dataset.v);
+});
+function go(v, arg){
+  current = v;
+  document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("active",b.dataset.v===v));
+  ({dash:renderDash, patients:renderPatients, enroll:renderEnroll, scripts:renderScripts,
+    data:renderData, settings:renderSettings, detail:renderDetail, fu:renderFu})[v](arg);
+  window.scrollTo(0,0);
+  updateHeader();
+}
+function updateHeader(){
+  const s=state.settings;
+  document.getElementById("hdCenter").textContent =
+    (s.centerNo?("中心 "+s.centerNo+" "):"")+(s.centerName||"")+(s.pharmacist?(" · 药师："+s.pharmacist):"");
+}
+
+/* ---------------- 工作台 ---------------- */
+function renderDash(){
+  const ps = state.patients;
+  const cnt = {good:0,mid:0,low:0};
+  ps.forEach(p=>cnt[p.baseline.level]++);
+  const dueList = [];
+  ps.forEach(p=>{
+    const s1=fuStatus(p,1), s2=fuStatus(p,2);
+    if(s1.code==="due"||s1.code==="over") dueList.push({p,which:1,st:s1});
+    else if((s1.code==="done") && (s2.code==="due"||s2.code==="over")) dueList.push({p,which:2,st:s2});
+  });
+  dueList.sort((a,b)=> (a.st.code==="over"?0:1)-(b.st.code==="over"?0:1));
+
+  // 本周推送
+  let pushHtml = `<p class="muted">请先在【设置】中填写“群推送起始日期”（第1期发送当周的周一）。</p>`;
+  if(state.settings.pushStart){
+    const days = Math.floor((new Date(today()) - new Date(state.settings.pushStart))/86400000);
+    const wk = Math.floor(days/7)+1;
+    if(days<0) pushHtml = `<p class="muted">推送尚未开始，起始日期：${esc(state.settings.pushStart)}</p>`;
+    else if(wk>=1 && wk<=9){
+      const s = SCRIPTS.find(x=>x.id==="W"+wk);
+      pushHtml = `<p>当前为推送第 <b>${wk}</b> 周，本周应发：<b>${esc(s.title)}</b></p>
+        <div class="script"><div class="sh"><b>${s.id}　${esc(s.title)}</b>
+        <button class="btn sm" onclick="copyScript('${s.id}')">一键复制</button></div>
+        <div class="sb">${esc(s.body)}</div></div>`;
+    } else pushHtml = `<p class="due-ok">9期主题推送已全部完成。可继续按需发送 C4 系列日常提醒（见话术库）。</p>`;
+  }
+
+  view.innerHTML = `
+  ${storageOK?"":`<div class="note">⚠ 本机浏览器存储不可用，当前数据仅保存在内存中，关闭页面将丢失。请换用 Edge/Chrome 浏览器或及时在【数据导出】中备份。</div>`}
+  <div class="stat">
+    <div class="s"><b>${ps.length}</b><span>入组患者</span></div>
+    <div class="s"><b style="color:#065f46">${cnt.good}</b><span>素养良好（≥4）</span></div>
+    <div class="s"><b style="color:#92400e">${cnt.mid}</b><span>素养中等（3~4）</span></div>
+    <div class="s"><b style="color:#991b1b">${cnt.low}</b><span>素养不足（≤3）</span></div>
+    <div class="s"><b style="color:${dueList.length?"var(--red)":"var(--green)"}">${dueList.length}</b><span>待随访 / 超窗</span></div>
+  </div>
+  <div class="card"><h2>随访待办</h2>
+    ${dueList.length? `<table class="plist"><tr><th>编号</th><th>缩写</th><th>分层</th><th>随访</th><th>状态</th><th></th></tr>`+
+      dueList.map(d=>`<tr onclick="go('detail','${d.p.id}')"><td>${esc(d.p.code)}</td><td>${esc(d.p.initials)}</td>
+        <td><span class="tag ${LEVELS[d.p.baseline.level].cls}">${LEVELS[d.p.baseline.level].name}</span></td>
+        <td>第${d.which}个月随访</td><td class="${d.st.cls}">${d.st.label}</td>
+        <td><button class="btn sm" onclick="event.stopPropagation();go('fu',{id:'${d.p.id}',which:${d.which}})">录入随访</button></td></tr>`).join("")+`</table>`
+      : `<p class="muted">当前没有到期的随访任务。</p>`}
+  </div>
+  <div class="card"><h2>本周群推送（老年人合理用药干预患者群）</h2>${pushHtml}</div>
+  <div class="card"><h2>快速入口</h2>
+    <div class="row">
+      <button class="btn" onclick="go('enroll')">＋ 新增入组</button>
+      <button class="btn sec" onclick="go('scripts')">打开话术库</button>
+      <button class="btn sec" onclick="go('data')">导出数据</button>
+    </div>
+    <p class="muted" style="margin-top:8px">流程：知情同意（A1）→ 电子量表（自动计分分层）→ 干预处方（B类话术）→ 邀请入群（A3）→ 1/3个月随访（D1/D2）。</p>
+  </div>`;
+}
+
+/* ---------------- 患者列表 ---------------- */
+function renderPatients(){
+  const ps = state.patients.slice().sort((a,b)=>a.code<b.code?-1:1);
+  view.innerHTML = `<div class="card"><h2>患者管理（${ps.length}人）</h2>
+  <div class="row" style="margin-bottom:10px">
+    <input type="text" id="pq" class="searchbox" placeholder="搜索编号 / 姓名缩写" oninput="filterP()">
+    <span class="spacer"></span><button class="btn" onclick="go('enroll')">＋ 新增入组</button></div>
+  <table class="plist" id="ptab"><tr><th>编号</th><th>缩写</th><th>性别/年龄</th><th>入组日期</th><th>素养</th><th>分层</th><th>随访1</th><th>随访2</th></tr>
+  ${ps.map(p=>{
+    const s1=fuStatus(p,1),s2=fuStatus(p,2);
+    return `<tr data-k="${esc(p.code)} ${esc(p.initials)}" onclick="go('detail','${p.id}')">
+    <td>${esc(p.code)}</td><td>${esc(p.initials)}</td><td>${p.sex}/${p.age}</td><td>${p.enrollDate}</td>
+    <td>${p.baseline.avg}</td><td><span class="tag ${LEVELS[p.baseline.level].cls}">${LEVELS[p.baseline.level].name}</span></td>
+    <td class="${s1.cls}">${s1.code==="done"?"✔":s1.code==="pending"?"—":s1.code==="due"?"待访":"超窗"}</td>
+    <td class="${s2.cls}">${s2.code==="done"?"✔":s2.code==="pending"?"—":s2.code==="due"?"待访":"超窗"}</td></tr>`;
+  }).join("")}</table>
+  ${ps.length?"":'<p class="muted">尚无患者，点击“新增入组”开始。</p>'}</div>`;
+}
+function filterP(){
+  const q=document.getElementById("pq").value.trim().toLowerCase();
+  document.querySelectorAll("#ptab tr[data-k]").forEach(tr=>{
+    tr.style.display = tr.dataset.k.toLowerCase().includes(q)?"":"none";
+  });
+}
+
+/* ---------------- 新增入组向导 ---------------- */
+let enr = null;
+function renderEnroll(){
+  if(!enr) enr = {step:0, info:{enrollDate:today(),diseases:[]}, amrs:Array(12).fill(null), lit:Array(41).fill(null), iv:[], ivNote:""};
+  const st = enr.step;
+  const steps = ["① 基本信息","② AMRS依从性","③ 药物素养量表","④ 结果与干预处方"];
+  let body = "";
+  if(st===0) body = enrollInfoHtml();
+  if(st===1) body = qHtml("AMRS药物治疗依从性评估（12题）", AMRS_ITEMS, enr.amrs, "amrs")
+    + `<p class="muted">总分12~48分，得分越低依从性越好。第12题为反向题，系统已自动按反向赋值计分，药师按患者原话选择即可。</p>`;
+  if(st===2) body = qHtml("老年人科学用药素养与常识调查问卷（41题）", LIT_ITEMS, enr.lit, "lit")
+    + `<p class="muted">系统按CRF印制分值自动计分（含全部反向题的自动赋值），无需人工换算。</p>`;
+  if(st===3) body = resultHtml();
+  view.innerHTML = `<div class="card"><h2>新增入组</h2>
+    <div class="steps">${steps.map((s,i)=>`<div class="${i===st?"on":i<st?"done":""}">${s}</div>`).join("")}</div>
+    <div class="note">开场请使用话术 <b>A1（知情同意）</b>、施测使用 <b>A2（量表引导）</b>——可在【话术库】查看复制。签署知情同意书后再开始录入。</div>
+    ${body}
+    <div class="row" style="margin-top:14px">
+      ${st>0?`<button class="btn sec" onclick="enrPrev()">上一步</button>`:""}
+      <span class="spacer"></span>
+      ${st<3?`<button class="btn" onclick="enrNext()">下一步</button>`:`<button class="btn" onclick="enrSave()">保存入组</button>`}
+      <button class="btn warn sm" onclick="if(confirm('放弃本次入组录入？')){enr=null;go('dash')}">取消</button>
+    </div></div>`;
+  if(st===0) fillInfoForm();
+}
+function enrollInfoHtml(){
+  const i=enr.info;
+  return `<div class="grid g3">
+    <div><label class="f">受试者编号（中心号+顺序号，如01001）*</label><input type="text" id="f_code" maxlength="8"></div>
+    <div><label class="f">姓名缩写（大写拼音，如ZHSA）*</label><input type="text" id="f_initials" maxlength="4" style="text-transform:uppercase"></div>
+    <div><label class="f">入组日期*</label><input type="date" id="f_date"></div>
+    <div><label class="f">性别*</label><select id="f_sex"><option value="">请选择</option><option>男</option><option>女</option></select></div>
+    <div><label class="f">年龄（周岁，≥60）*</label><input type="number" id="f_age" min="60" max="120"></div>
+    <div><label class="f">现服药物数量（种，≥2）*</label><input type="number" id="f_drug" min="0" max="40"></div>
+    <div><label class="f">患者/家属联系电话</label><input type="text" id="f_phone"></div>
+    <div><label class="f">是否已入微信群</label><select id="f_group"><option>是</option><option>否</option><option>家属代入群</option></select></div>
+    <div><label class="f">随访偏好方式</label><select id="f_pref"><option>电话</option><option>微信</option><option>现场</option></select></div>
+  </div>
+  <fieldset><legend>所患慢性病（前四种至少1种）*</legend>
+    ${DISEASES.map(d=>`<label class="ck"><input type="checkbox" class="f_dis" value="${d}" ${i.diseases.includes(d)?"checked":""}>${d}</label>`).join("")}
+  </fieldset>
+  <div><label class="f">现用药列表 / 备注（药名、剂量、频次，可简写）</label><textarea id="f_notes"></textarea></div>
+  <p class="muted">入组标准核查：≥60岁；确诊高血压/糖尿病/冠心病/脑卒中至少1种；服用≥2种慢性病药物；签署知情同意；能自主交流、同意3个月随访。</p>`;
+}
+function fillInfoForm(){
+  const i=enr.info;
+  const set=(id,v)=>{const el=document.getElementById(id); if(el&&v!==undefined&&v!==null)el.value=v;};
+  set("f_code",i.code); set("f_initials",i.initials); set("f_date",i.enrollDate);
+  set("f_sex",i.sex); set("f_age",i.age); set("f_drug",i.drugCount);
+  set("f_phone",i.phone); set("f_group",i.group); set("f_pref",i.pref); set("f_notes",i.notes);
+}
+function collectInfo(){
+  const g=id=>document.getElementById(id)?.value?.trim()||"";
+  const i=enr.info;
+  i.code=g("f_code"); i.initials=g("f_initials").toUpperCase(); i.enrollDate=g("f_date");
+  i.sex=g("f_sex"); i.age=+g("f_age")||0; i.drugCount=+g("f_drug")||0;
+  i.phone=g("f_phone"); i.group=g("f_group"); i.pref=g("f_pref"); i.notes=g("f_notes");
+  i.diseases=[...document.querySelectorAll(".f_dis:checked")].map(x=>x.value);
+}
+function qHtml(title, items, answers, key){
+  return `<h3>${title}</h3><div id="q_${key}">`+
+    items.map((it,idx)=>{
+      const [no,text,opts]=it;
+      return `<div class="qrow" id="${key}_r${idx}">
+        <div class="qt"><span class="qnum">${no}.</span> ${esc(text)}</div>
+        <div class="opts">${opts.map(([lab,val],oi)=>
+          `<label><input type="radio" name="${key}${idx}" value="${val}" ${answers[idx]===val&&answers[idx]!==null?"checked":""}
+            onchange="enr.${key}[${idx}]=${val};document.getElementById('${key}_r${idx}').classList.remove('missing');updProg('${key}')">${lab}</label>`).join("")}
+        </div></div>`;
+    }).join("")+
+    `</div><p class="muted" id="prog_${key}">已答 ${answers.filter(v=>v!==null).length} / ${items.length} 题</p>`;
+}
+function updProg(key){
+  const arr = enr[key];
+  const el = document.getElementById("prog_"+key);
+  if(el) el.textContent = `已答 ${arr.filter(v=>v!==null).length} / ${arr.length} 题`;
+}
+function enrPrev(){ if(enr.step===1) collect_ok=true; enr.step--; renderEnroll(); }
+function enrNext(){
+  if(enr.step===0){
+    collectInfo();
+    const i=enr.info, errs=[];
+    if(!/^\d{4,8}$/.test(i.code)) errs.push("受试者编号应为数字（中心号+顺序号）");
+    if(state.patients.some(p=>p.code===i.code)) errs.push("该编号已存在");
+    if(!/^[A-Z]{2,4}$/.test(i.initials)) errs.push("姓名缩写应为2~4位大写字母");
+    if(!i.enrollDate) errs.push("请填入组日期");
+    if(!i.sex) errs.push("请选择性别");
+    if(!(i.age>=60)) errs.push("年龄须≥60岁");
+    if(!(i.drugCount>=2)) errs.push("服用药物须≥2种（不符合入组标准）");
+    if(!i.diseases.some(d=>["高血压","糖尿病","冠心病","脑卒中"].includes(d))) errs.push("四种目标慢性病须至少选1种");
+    if(errs.length){ alert("请核查：\n· "+errs.join("\n· ")); return; }
+  }
+  if(enr.step===1 || enr.step===2){
+    const key = enr.step===1?"amrs":"lit";
+    const arr = enr[key];
+    let firstMiss=-1;
+    arr.forEach((v,idx)=>{ if(v===null){ if(firstMiss<0)firstMiss=idx; document.getElementById(key+"_r"+idx)?.classList.add("missing"); }});
+    if(firstMiss>=0){ toast("尚有未回答的条目（已用红框标出）"); document.getElementById(key+"_r"+firstMiss)?.scrollIntoView({behavior:"smooth",block:"center"}); return; }
+    if(enr.step===2){ // 进入结果页前计算并预置干预措施
+      const r = scoreLit(enr.lit);
+      enr.iv = LEVELS[r.level].defaults.slice();
+    }
+  }
+  enr.step++; renderEnroll();
+}
+function resultHtml(){
+  const r = scoreLit(enr.lit);
+  const amrs = scoreAmrs(enr.amrs);
+  const L = LEVELS[r.level];
+  const weak = Object.entries(r.dims).sort((a,b)=>a[1]-b[1]).filter(([n,v])=>v<4).slice(0,3);
+  const scr = SCRIPTS.find(s=>s.id===L.script);
+  return `
+  <div class="grid g2">
+    <div class="card" style="margin:0"><h3 style="margin-top:0">评估结果（系统自动计算）</h3>
+      <p>药物素养总分：<b style="font-size:20px">${r.total}</b> / 205　平均分：<b style="font-size:20px">${r.avg}</b></p>
+      <p>分层：<span class="tag ${L.cls}" style="font-size:15px">${L.name}（${L.cond}）</span>
+         达标（≥157或均分≥3.82）：<b>${r.pass?"达标":"未达标"}</b></p>
+      <p>AMRS依从性总分：<b>${amrs}</b> / 48（得分越低依从性越好）</p>
+    </div>
+    <div class="card" style="margin:0"><h3 style="margin-top:0">九维度得分（均分，越低越薄弱）</h3>
+      ${Object.entries(r.dims).map(([n,v])=>`
+        <div class="row" style="margin:3px 0"><span style="flex:0 0 168px;font-size:13px">${n}</span>
+        <div class="bar ${v<4?"weak":""}" style="flex:1"><i style="width:${(v/5*100).toFixed(0)}%"></i></div>
+        <b style="width:38px;text-align:right">${v}</b></div>`).join("")}
+    </div>
+  </div>
+  <div class="card" style="margin-top:12px"><h3 style="margin-top:0">干预处方（自动生成，可调整）</h3>
+    <p><b>干预重点：</b>${L.focus}</p>
+    ${weak.length?`<p><b>薄弱维度强化（得分最低）：</b></p><ul style="margin:4px 0 8px 22px">${weak.map(([n,v])=>`<li><b>${n}（${v}分）</b>：${DIM_TIPS[n]}</li>`).join("")}</ul>`:""}
+    <p><b>本次实施的干预措施（对应CRF勾选）：</b></p>
+    <div>${INTERVENTIONS.map((t,i)=>`<label class="ck"><input type="checkbox" ${enr.iv.includes(i)?"checked":""} onchange="toggleIv(${i},this.checked)">${t}</label>`).join("")}</div>
+    <div style="margin-top:6px"><label class="f">⑧其他/备注（如“家属协同管理”“转诊”）</label><input type="text" id="f_ivnote" value="${esc(enr.ivNote)}" onchange="enr.ivNote=this.value"></div>
+    <div class="script"><div class="sh"><b>${scr.id}　${esc(scr.title)}</b>
+      <button class="btn sm" onclick="copyScript('${scr.id}')">复制话术</button></div>
+      <div class="sb">${esc(scr.body)}</div>${scr.note?`<div class="sn">〔药师注意〕${esc(scr.note)}</div>`:""}</div>
+    <div class="note">结束前：邀请入群（话术A3）；${r.level==="low"?"落实家属入群与家属沟通；建议2周内电话加强联系1次；":""}告知第1个月将随访。</div>
+  </div>`;
+}
+function toggleIv(i,on){ if(on){ if(!enr.iv.includes(i))enr.iv.push(i);} else enr.iv=enr.iv.filter(x=>x!==i); }
+function enrSave(){
+  const r = scoreLit(enr.lit);
+  enr.ivNote = document.getElementById("f_ivnote")?.value || enr.ivNote;
+  const p = {
+    id:"p"+Date.now(), code:enr.info.code, initials:enr.info.initials, sex:enr.info.sex, age:enr.info.age,
+    diseases:enr.info.diseases, drugCount:enr.info.drugCount, enrollDate:enr.info.enrollDate,
+    phone:enr.info.phone, group:enr.info.group, pref:enr.info.pref, notes:enr.info.notes,
+    baseline:{amrs:enr.amrs.slice(), amrsScore:scoreAmrs(enr.amrs), lit:enr.lit.slice(),
+      total:r.total, avg:r.avg, level:r.level, pass:r.pass, dims:r.dims,
+      iv:enr.iv.slice().sort(), ivNote:enr.ivNote},
+    fu1:null, fu2:null
+  };
+  state.patients.push(p); save();
+  toast("入组保存成功："+p.code);
+  enr=null; go("detail", p.id);
+}
+
+/* ---------------- 患者详情 ---------------- */
+function renderDetail(id){
+  const p = state.patients.find(x=>x.id===id);
+  if(!p){ go("patients"); return; }
+  const b=p.baseline, L=LEVELS[b.level];
+  const s1=fuStatus(p,1), s2=fuStatus(p,2);
+  const weak = Object.entries(b.dims).sort((a,c)=>a[1]-c[1]).filter(([n,v])=>v<4).slice(0,3);
+  const fuCard=(which,fu,st)=>{
+    let inner="";
+    if(fu&&fu.done){
+      inner = `<p>日期：${fu.date}　方式：${fu.method}</p>
+      <p>不良反应：${fu.adr==="有"?("有——"+esc(fu.adrDesc)):"无"}　新问题：${fu.newIssue==="有"?("有——"+esc(fu.newDesc)):"无"}</p>
+      <p>监测/达标：${esc(fu.monitor||"—")}</p>
+      <p>干预措施：${(fu.iv||[]).map(i=>`<span class="chip">${INTERVENTIONS[i]}</span>`).join("")||"—"} ${fu.ivNote?("备注："+esc(fu.ivNote)):""}</p>`;
+      if(which===2){
+        inner += `<p>计划外就诊：${fu.uv==="有"?`有（${esc(fu.uvType)}，原因：${esc(fu.uvReason)}，调药：${esc(fu.uvAdj)}，花费约${esc(fu.uvCost)}元）`:"无"}</p>
+        <p>现用药：${esc(fu.drugCount)}种　AMRS复测：<b>${fu.amrsScore}</b>（基线${b.amrsScore}）</p>
+        <p>素养复测：总分<b>${fu.total}</b>（基线${b.total}）　均分<b>${fu.avg}</b>（基线${b.avg}）
+          分层：<span class="tag ${LEVELS[fu.level].cls}">${LEVELS[fu.level].name}</span>　达标：${fu.pass?"是":"否"}</p>
+        <p>满意度：达到治疗目标-${fu.sat1}；健康与幸福感提高-${fu.sat2}；愿意推荐-${fu.sat3}</p>
+        <p>试验完成：${esc(fu.finish)}</p>`;
+      }
+    } else {
+      inner = `<p class="${st.cls}">${st.label}</p>
+      <p class="muted">随访前可在群发送 C4-2 随访预告；随访使用话术 D${which}${which===2?"（含量表复测与满意度）":""}。</p>
+      <button class="btn" onclick="go('fu',{id:'${p.id}',which:${which}})">录入第${which}个月随访</button>`;
+    }
+    return `<div class="card"><h2>第${which}个月随访 ${fu&&fu.done?'<span class="tag good">已完成</span>':""}</h2>${inner}</div>`;
+  };
+  view.innerHTML = `
+  <div class="row" style="margin-bottom:10px"><button class="btn sec sm" onclick="go('patients')">← 返回列表</button>
+    <span class="spacer"></span><button class="btn warn sm" onclick="delPatient('${p.id}')">删除该患者</button></div>
+  <div class="card"><h2>${esc(p.code)}　${esc(p.initials)}　<span class="tag ${L.cls}">素养${L.name}</span> ${b.pass?'<span class="tag info">达标</span>':""}</h2>
+    <p>${p.sex} / ${p.age}岁　入组：${p.enrollDate}　随访偏好：${esc(p.pref||"")}　微信群：${esc(p.group||"")} ${p.phone?("　电话："+esc(p.phone)):""}</p>
+    <p>慢性病：${p.diseases.map(d=>`<span class="chip">${d}</span>`).join("")}　用药 ${p.drugCount} 种</p>
+    ${p.notes?`<p class="muted">用药/备注：${esc(p.notes)}</p>`:""}
+  </div>
+  <div class="grid g2">
+    <div class="card" style="margin:0"><h2>基线评估</h2>
+      <p>素养总分 <b>${b.total}</b>　均分 <b>${b.avg}</b>　AMRS <b>${b.amrsScore}</b></p>
+      ${Object.entries(b.dims).map(([n,v])=>`
+        <div class="row" style="margin:3px 0"><span style="flex:0 0 168px;font-size:13px">${n}</span>
+        <div class="bar ${v<4?"weak":""}" style="flex:1"><i style="width:${(v/5*100).toFixed(0)}%"></i></div>
+        <b style="width:38px;text-align:right">${v}</b></div>`).join("")}
+    </div>
+    <div class="card" style="margin:0"><h2>干预处方</h2>
+      <p><b>重点：</b>${LEVELS[b.level].focus}</p>
+      ${weak.length?`<p><b>薄弱维度：</b></p><ul style="margin:4px 0 8px 22px">${weak.map(([n,v])=>`<li><b>${n}（${v}）</b>：${DIM_TIPS[n]}</li>`).join("")}</ul>`:""}
+      <p><b>入组干预措施：</b>${(b.iv||[]).map(i=>`<span class="chip">${INTERVENTIONS[i]}</span>`).join("")} ${b.ivNote?("备注："+esc(b.ivNote)):""}</p>
+      <p><b>随访强化：</b>第1个月——${LEVELS[b.level].fu1}；第3个月——${LEVELS[b.level].fu2}</p>
+      <div class="row"><button class="btn sm sec" onclick="copyScript('${LEVELS[b.level].script}')">复制${LEVELS[b.level].script}话术</button>
+      <button class="btn sm sec" onclick="copyScript('D1')">复制D1随访脚本</button>
+      <button class="btn sm sec" onclick="copyScript('D2')">复制D2随访脚本</button></div>
+    </div>
+  </div>
+  ${fuCard(1,p.fu1,s1)}
+  ${fuCard(2,p.fu2,s2)}`;
+}
+function delPatient(id){
+  if(!confirm("确认删除该患者的全部记录？此操作不可恢复（建议先在【数据导出】备份）。")) return;
+  state.patients = state.patients.filter(p=>p.id!==id); save(); toast("已删除"); go("patients");
+}
+
+/* ---------------- 随访录入 ---------------- */
+let fuTmp=null;
+function renderFu(arg){
+  const p = state.patients.find(x=>x.id===arg.id); if(!p){go("patients");return;}
+  const which = arg.which;
+  if(!fuTmp || fuTmp.pid!==p.id || fuTmp.which!==which){
+    fuTmp = {pid:p.id, which, date:today(), method:p.pref||"电话", adr:"否", newIssue:"无", uv:"无",
+      iv:[], amrs:Array(12).fill(null), lit:Array(41).fill(null)};
+  }
+  const dscr = SCRIPTS.find(s=>s.id==="D"+which);
+  const L = LEVELS[p.baseline.level];
+  view.innerHTML = `<div class="card">
+    <h2>第${which}个月随访录入 —— ${esc(p.code)} ${esc(p.initials)}
+      <span class="tag ${L.cls}">素养${L.name}</span></h2>
+    <div class="note"><b>本层随访强化点：</b>${which===1?L.fu1:L.fu2}</div>
+    <div class="script"><div class="sh"><b>${dscr.id}　${esc(dscr.title)}</b>
+      <button class="btn sm" onclick="copyScript('${dscr.id}')">复制脚本</button></div>
+      <div class="sb">${esc(dscr.body)}</div></div>
+    <div class="grid g3">
+      <div><label class="f">随访日期*</label><input type="date" id="u_date" value="${fuTmp.date}"></div>
+      <div><label class="f">随访方式*</label><select id="u_method"><option${fuTmp.method==="电话"?" selected":""}>电话</option><option${fuTmp.method==="微信"?" selected":""}>微信</option><option${fuTmp.method==="现场"?" selected":""}>现场</option></select></div>
+    </div>
+    <fieldset><legend>1. 药物不良反应</legend>
+      <label class="ck"><input type="radio" name="u_adr" value="否" checked onchange="fuTmp.adr='否'">无</label>
+      <label class="ck"><input type="radio" name="u_adr" value="是" onchange="fuTmp.adr='有'">有</label>
+      <input type="text" id="u_adrdesc" placeholder="如有：描述表现、时间、处理（疑重按C6转诊并上报）">
+    </fieldset>
+    <fieldset><legend>2. 监测结果与达标（按所患疾病填写）</legend>
+      <textarea id="u_monitor" placeholder="例：血压 138/82 达标；空腹血糖 7.8 不达标；血脂未监测；心绞痛 0 次"></textarea>
+    </fieldset>
+    ${which===1?`
+    <fieldset><legend>3. 新的药物治疗相关问题</legend>
+      <label class="ck"><input type="radio" name="u_ni" value="无" checked onchange="fuTmp.newIssue='无'">无</label>
+      <label class="ck"><input type="radio" name="u_ni" value="有" onchange="fuTmp.newIssue='有'">有</label>
+      <input type="text" id="u_nidesc" placeholder="如有请简述">
+    </fieldset>`:`
+    <fieldset><legend>3. 计划外就诊（入组以来）</legend>
+      <label class="ck"><input type="radio" name="u_uv" value="无" checked onchange="fuTmp.uv='无'">无</label>
+      <label class="ck"><input type="radio" name="u_uv" value="有" onchange="fuTmp.uv='有'">有</label>
+      <div class="grid g4" style="margin-top:6px">
+        <div><label class="f">就诊类型</label><select id="u_uvtype"><option></option><option>门诊</option><option>急诊</option><option>住院</option></select></div>
+        <div><label class="f">原因</label><select id="u_uvreason"><option></option><option>常规开药</option><option>原发病加重</option><option>药物不良反应</option><option>其他</option></select></div>
+        <div><label class="f">是否调整用药</label><select id="u_uvadj"><option></option><option>是</option><option>否</option></select></div>
+        <div><label class="f">花费约（元）</label><input type="number" id="u_uvcost" min="0"></div>
+      </div>
+    </fieldset>
+    <fieldset><legend>4. 现用药数量（种）</legend><input type="number" id="u_drug" min="0" value="${p.drugCount}"></fieldset>
+    <fieldset><legend>5. AMRS 复测（12题）</legend>${qHtml("",AMRS_ITEMS,fuTmp.amrs,"amrs").replace("<h3></h3>","")}</fieldset>
+    <fieldset><legend>6. 药物素养量表复测（41题，话术A2引导）</legend>${qHtml("",LIT_ITEMS,fuTmp.lit,"lit").replace("<h3></h3>","")}</fieldset>
+    <fieldset><legend>7. 满意度（照读三问）</legend>
+      <div class="grid g3">
+      <div><label class="f">①通过药师帮助达到治疗目标</label><select id="u_s1"><option>是</option><option>否</option></select></div>
+      <div><label class="f">②健康状况和幸福感有提高</label><select id="u_s2"><option>是</option><option>否</option></select></div>
+      <div><label class="f">③愿意推荐给其他老年人</label><select id="u_s3"><option>是</option><option>否</option></select></div>
+      </div>
+    </fieldset>
+    <fieldset><legend>8. 试验完成情况</legend>
+      <select id="u_finish"><option>完成试验</option><option>失访</option><option>自行退出</option><option>死亡</option><option>严重不良事件/症状恶化</option><option>符合排除标准剔除</option><option>其他</option></select>
+    </fieldset>`}
+    <fieldset><legend>本次实施的干预措施（对应CRF勾选）</legend>
+      ${INTERVENTIONS.map((t,i)=>`<label class="ck"><input type="checkbox" onchange="fuIv(${i},this.checked)">${t}</label>`).join("")}
+      <input type="text" id="u_ivnote" placeholder="⑧其他/备注" style="margin-top:6px">
+    </fieldset>
+    <div class="row"><span class="spacer"></span>
+      <button class="btn" onclick="fuSave('${p.id}',${which})">保存随访</button>
+      <button class="btn sec" onclick="go('detail','${p.id}')">取消</button></div>
+  </div>`;
+}
+function fuIv(i,on){ if(on){ if(!fuTmp.iv.includes(i))fuTmp.iv.push(i);} else fuTmp.iv=fuTmp.iv.filter(x=>x!==i); }
+function fuSave(pid,which){
+  const p = state.patients.find(x=>x.id===pid); if(!p) return;
+  const g=id=>document.getElementById(id)?.value?.trim()||"";
+  const fu = {done:true, date:g("u_date"), method:g("u_method"),
+    adr:fuTmp.adr, adrDesc:g("u_adrdesc"), monitor:g("u_monitor"),
+    iv:fuTmp.iv.slice().sort(), ivNote:g("u_ivnote")};
+  if(!fu.date){ alert("请填写随访日期"); return; }
+  if(fuTmp.adr==="有" && !fu.adrDesc){ alert("已选“有不良反应”，请填写描述"); return; }
+  if(which===1){
+    fu.newIssue=fuTmp.newIssue; fu.newDesc=g("u_nidesc");
+  } else {
+    // 复测必须完整
+    if(fuTmp.amrs.some(v=>v===null) || fuTmp.lit.some(v=>v===null)){
+      let k = fuTmp.amrs.some(v=>v===null)?"amrs":"lit";
+      fuTmp[k].forEach((v,idx)=>{ if(v===null) document.getElementById(k+"_r"+idx)?.classList.add("missing"); });
+      toast("复测量表尚有未回答条目（红框标出）"); return;
+    }
+    const r = scoreLit(fuTmp.lit);
+    Object.assign(fu, {uv:fuTmp.uv, uvType:g("u_uvtype"), uvReason:g("u_uvreason"), uvAdj:g("u_uvadj"), uvCost:g("u_uvcost"),
+      drugCount:g("u_drug"), amrs:fuTmp.amrs.slice(), amrsScore:scoreAmrs(fuTmp.amrs),
+      lit:fuTmp.lit.slice(), total:r.total, avg:r.avg, level:r.level, pass:r.pass, dims:r.dims,
+      sat1:g("u_s1"), sat2:g("u_s2"), sat3:g("u_s3"), finish:g("u_finish")});
+    fu.newIssue="—";
+  }
+  if(which===1) p.fu1=fu; else p.fu2=fu;
+  save(); fuTmp=null;
+  toast(`第${which}个月随访已保存`);
+  go("detail",pid);
+}
+
+/* ---------------- 话术库 ---------------- */
+function renderScripts(){
+  const cats = ["全部","入组","首次干预","微信群","群推送","群答疑","随访"];
+  view.innerHTML = `<div class="card"><h2>标准化话术库（附件2 · 共${SCRIPTS.length}套）</h2>
+    <div class="row" style="margin-bottom:10px">
+      ${cats.map(c=>`<button class="btn sm ${c==="全部"?"":"sec"}" data-c="${c}" onclick="filtScripts('${c}',this)">${c}</button>`).join("")}
+      <span class="spacer"></span>
+      <input type="text" id="sq" class="searchbox" placeholder="搜索话术内容…" oninput="filtScripts(window._sc||'全部')">
+    </div>
+    <div class="note">纪律提醒：不推荐具体品牌/购药链接；不建议自行调整处方药剂量或停药（引导咨询医师）；不承诺疗效；不作诊断；隐私引导私聊；不转发未经审核的链接。【】处按本中心信息替换后使用。</div>
+    <div id="slist">${SCRIPTS.map(scriptCard).join("")}</div></div>`;
+}
+function scriptCard(s){
+  return `<div class="script" data-cat="${s.cat}" data-k="${esc(s.id+s.title+s.body)}">
+    <div class="sh"><b>${s.id}　${esc(s.title)}　<span class="tag grey">${s.cat}</span></b>
+    <button class="btn sm" onclick="copyScript('${s.id}')">一键复制</button></div>
+    <div class="sb">${esc(s.body)}</div>
+    ${s.note?`<div class="sn">〔药师注意〕${esc(s.note)}</div>`:""}</div>`;
+}
+function filtScripts(cat,btn){
+  window._sc=cat;
+  if(btn){document.querySelectorAll("[data-c]").forEach(b=>b.classList.toggle("sec",b.dataset.c!==cat));}
+  const q=(document.getElementById("sq")?.value||"").trim();
+  document.querySelectorAll("#slist .script").forEach(el=>{
+    const okCat = cat==="全部"||el.dataset.cat===cat;
+    const okQ = !q || el.dataset.k.includes(q);
+    el.style.display = okCat&&okQ?"":"none";
+  });
+}
+function copyScript(id){
+  const s=SCRIPTS.find(x=>x.id===id);
+  if(s) copyText(s.body);
+}
+
+/* ---------------- 数据导出 ---------------- */
+function renderData(){
+  const done2 = state.patients.filter(p=>p.fu2&&p.fu2.done).length;
+  view.innerHTML = `<div class="card"><h2>数据导出与备份</h2>
+    <p>当前：入组 <b>${state.patients.length}</b> 人，完成3个月结题 <b>${done2}</b> 人。</p>
+    <h3>导出（CSV，可直接用Excel打开，UTF-8编码）</h3>
+    <div class="row">
+      <button class="btn" onclick="expSummary()">① 患者汇总表（每人一行）</button>
+      <button class="btn" onclick="expItems()">② 量表逐题明细（基线+复测）</button>
+    </div>
+    <p class="muted" style="margin-top:6px">汇总表含：基本信息、AMRS、素养总分/均分/分层/达标、9维度、干预措施、两次随访全部字段、满意度——即CRF电子化数据，可供SPSS直接导入。</p>
+    <h3 style="margin-top:16px">备份与迁移（JSON）</h3>
+    <div class="row">
+      <button class="btn sec" onclick="expJson()">导出完整备份</button>
+      <label class="btn sec" style="cursor:pointer">导入备份<input type="file" accept=".json" style="display:none" onchange="impJson(this)"></label>
+      <span class="spacer"></span>
+      <button class="btn warn" onclick="wipe()">清空全部数据</button>
+    </div>
+    <div class="note">数据仅存于本机浏览器。建议：每周导出一次JSON备份存至工作电脑；按项目要求定期将CSV汇总表上报项目组。上报文件仅含受试者编号与姓名缩写，不含可直接识别身份的信息。</div>
+  </div>`;
+}
+function csvEsc(v){ v=String(v??""); return /[",\n]/.test(v)?('"'+v.replace(/"/g,'""')+'"'):v; }
+function downloadFile(name, content, mime){
+  const blob = new Blob(["﻿"+content], {type:mime||"text/csv;charset=utf-8"});
+  const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=name;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(a.href),2000);
+}
+function ivStr(iv){ return (iv||[]).map(i=>INTERVENTIONS[i]).join("；"); }
+function expSummary(){
+  const dimNames = Object.keys(DIMS);
+  const head = ["受试者编号","姓名缩写","性别","年龄","慢性病","用药数量","入组日期","联系电话","入群情况",
+    "AMRS基线","素养基线总分","素养基线均分","基线分层","基线达标",
+    ...dimNames.map(d=>"基线_"+d),"基线干预措施","基线干预备注",
+    "随访1完成","随访1日期","随访1方式","随访1不良反应","随访1不良反应描述","随访1监测达标","随访1新问题","随访1新问题描述","随访1干预措施",
+    "随访2完成","随访2日期","随访2方式","随访2不良反应","随访2不良反应描述","随访2监测达标","计划外就诊","就诊类型","就诊原因","是否调药","花费元","现用药数量",
+    "AMRS复测","素养复测总分","素养复测均分","复测分层","复测达标",...dimNames.map(d=>"复测_"+d),
+    "满意度1","满意度2","满意度3","试验完成情况","随访2干预措施"];
+  const rows = state.patients.map(p=>{
+    const b=p.baseline, f1=p.fu1||{}, f2=p.fu2||{};
+    return [p.code,p.initials,p.sex,p.age,p.diseases.join("、"),p.drugCount,p.enrollDate,p.phone||"",p.group||"",
+      b.amrsScore,b.total,b.avg,LEVELS[b.level].name,b.pass?"是":"否",
+      ...Object.keys(DIMS).map(d=>b.dims[d]),ivStr(b.iv),b.ivNote||"",
+      f1.done?"是":"否",f1.date||"",f1.method||"",f1.adr||"",f1.adrDesc||"",f1.monitor||"",f1.newIssue||"",f1.newDesc||"",ivStr(f1.iv),
+      f2.done?"是":"否",f2.date||"",f2.method||"",f2.adr||"",f2.adrDesc||"",f2.monitor||"",f2.uv||"",f2.uvType||"",f2.uvReason||"",f2.uvAdj||"",f2.uvCost||"",f2.drugCount||"",
+      f2.amrsScore??"",f2.total??"",f2.avg??"",f2.level?LEVELS[f2.level].name:"",f2.done?(f2.pass?"是":"否"):"",
+      ...Object.keys(DIMS).map(d=>f2.dims?f2.dims[d]:""),
+      f2.sat1||"",f2.sat2||"",f2.sat3||"",f2.finish||"",ivStr(f2.iv)];
+  });
+  downloadFile(`患者汇总_中心${state.settings.centerNo||"未设置"}_${today()}.csv`,
+    [head,...rows].map(r=>r.map(csvEsc).join(",")).join("\n"));
+  toast("汇总表已导出");
+}
+function expItems(){
+  const head=["受试者编号","阶段",
+    ...AMRS_ITEMS.map(i=>"AMRS"+i[0]),
+    ...LIT_ITEMS.map(i=>"L"+i[0])];
+  const rows=[];
+  state.patients.forEach(p=>{
+    rows.push([p.code,"基线",...p.baseline.amrs,...p.baseline.lit]);
+    if(p.fu2&&p.fu2.done&&p.fu2.lit) rows.push([p.code,"3个月复测",...p.fu2.amrs,...p.fu2.lit]);
+  });
+  downloadFile(`量表逐题明细_中心${state.settings.centerNo||"未设置"}_${today()}.csv`,
+    [head,...rows].map(r=>r.map(csvEsc).join(",")).join("\n"));
+  toast("逐题明细已导出（数值为计分后分值，反向题已赋值）");
+}
+function expJson(){
+  downloadFile(`药师工作台备份_${today()}.json`, JSON.stringify(state,null,1), "application/json;charset=utf-8");
+  toast("备份已导出");
+}
+function impJson(inp){
+  const f=inp.files[0]; if(!f) return;
+  const rd=new FileReader();
+  rd.onload=()=>{
+    try{
+      const obj=JSON.parse(rd.result);
+      if(!obj.patients||!obj.settings) throw new Error("格式不符");
+      if(!confirm(`备份含 ${obj.patients.length} 名患者。导入将覆盖当前数据（当前 ${state.patients.length} 人），确认？`)) return;
+      state=obj; save(); toast("导入成功"); go("dash");
+    }catch(e){ alert("导入失败："+e.message); }
+  };
+  rd.readAsText(f,"utf-8");
+}
+function wipe(){
+  if(prompt('危险操作：将删除本机全部患者数据。如确认，请输入"清空"')==="清空"){
+    state.patients=[]; save(); toast("已清空"); go("dash");
+  }
+}
+
+/* ---------------- 设置 ---------------- */
+function renderSettings(){
+  const s=state.settings;
+  view.innerHTML = `<div class="card"><h2>分中心信息</h2>
+    <div class="grid g4">
+      <div><label class="f">中心号（2位，如01）</label><input type="text" id="s_no" value="${esc(s.centerNo)}" maxlength="3"></div>
+      <div><label class="f">社区中心名称</label><input type="text" id="s_name" value="${esc(s.centerName)}"></div>
+      <div><label class="f">药师姓名</label><input type="text" id="s_ph" value="${esc(s.pharmacist)}"></div>
+      <div><label class="f">联系电话</label><input type="text" id="s_tel" value="${esc(s.phone)}"></div>
+    </div>
+    <div style="margin-top:10px;max-width:280px"><label class="f">群推送起始日期（第1期发送当周的周一）</label>
+      <input type="date" id="s_push" value="${esc(s.pushStart)}"></div>
+    <div class="row" style="margin-top:12px"><button class="btn" onclick="saveSettings()">保存设置</button></div>
+  </div>
+  <div class="card"><h2>AI 智能辅助（预留，待项目组批准后启用）</h2>
+    <div class="disabledbox">
+      <div class="grid g2">
+        <div><label class="f">大模型API地址</label><input type="text" placeholder="待配置" disabled></div>
+        <div><label class="f">API密钥</label><input type="text" placeholder="待配置" disabled></div>
+      </div>
+      <div class="row" style="margin-top:8px">
+        <button class="btn" disabled>群答疑草稿生成</button>
+        <button class="btn" disabled>随访记录智能摘要</button>
+        <button class="btn" disabled>用药清单相互作用初筛</button>
+      </div>
+    </div>
+    <p class="muted" style="margin-top:8px">规划功能：①患者群提问→AI按话术库口径生成回复草稿→药师审核（含禁语校验）后发送；②随访通话要点→AI整理为CRF格式记录；③现用药清单→相互作用/重复用药初筛提示。启用前提：项目组确定合规的大模型服务、数据脱敏规则与审核流程。当前版本所有计分、分层、话术匹配均为确定性规则，符合研究标准化要求，不依赖AI。</p>
+  </div>
+  <div class="card"><h2>关于</h2>
+    <p class="muted">老年人合理用药干预·药师工作台 离线版V1.0（2026-07-14）。依据：《研究病例记录表》V2.0、《附件2 老年人合理用药干预措施方案及标准化话术》V1.0。量表计分规则：41题总分41–205，平均分≥4良好、3~4中等、≤3不足；总分≥157或平均分≥3.82达标；全部反向题由系统自动赋值。数据仅存本机浏览器，请定期备份。</p>
+  </div>`;
+}
+function saveSettings(){
+  const g=id=>document.getElementById(id).value.trim();
+  state.settings={centerNo:g("s_no"),centerName:g("s_name"),pharmacist:g("s_ph"),phone:g("s_tel"),pushStart:g("s_push")};
+  save(); updateHeader(); toast("设置已保存");
+}
+
+/* ---------------- 自测（控制台调用 __selftest()） ---------------- */
+window.__selftest = function(){
+  const out=[];
+  const firsts = LIT_ITEMS.map(it=>it[2][0][1]);   // 全选第一列
+  const best   = LIT_ITEMS.map(it=>Math.max(...it[2].map(o=>o[1]))); // 每题选最优答案
+  const r1=scoreLit(firsts), r2=scoreLit(best);
+  out.push(["全选第一列 total=85?", r1.total===85, r1]);
+  out.push(["全选第一列 分层=不足?", r1.level==="low"]);
+  out.push(["全选最优 total=205 avg=5 良好?", r2.total===205&&r2.avg===5&&r2.level==="good"]);
+  const bestBeh = LIT_ITEMS.map(it=> Math.max(...it[2].map(o=>o[1])) ); // 每题最高分
+  out.push(["每题最高分求和=205?", bestBeh.reduce((a,b)=>a+b,0)===205]);
+  const a1 = AMRS_ITEMS.map(it=>it[2][0][1]);
+  out.push(["AMRS全选第一列=15?（11×1+反向4）", scoreAmrs(a1)===15]);
+  const dimCount = Object.values(DIMS).reduce((a,b)=>a+b.length,0);
+  out.push(["9维度覆盖41题?", dimCount===41]);
+  const allItems = Object.values(DIMS).flat().sort((a,b)=>a-b);
+  out.push(["维度题号无重复且1-41?", allItems.join()===[...Array(41)].map((_,i)=>i+1).join()]);
+  out.push(["边界: avg=4 → 良好?", levelOf(4)==="good"]);
+  out.push(["边界: avg=3 → 不足?", levelOf(3)==="low"]);
+  out.push(["边界: avg=3.5 → 中等?", levelOf(3.5)==="mid"]);
+  console.table(out.map(o=>({检查:o[0],通过:o[1]})));
+  return out.every(o=>o[1]);
+};
+
+/* 启动 */
+load(); updateHeader(); renderDash();
+</script>
+</body>
+</html>
