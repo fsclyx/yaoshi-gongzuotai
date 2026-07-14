@@ -330,6 +330,7 @@ function load(){
 function save(){
   try{ localStorage.setItem(STORE_KEY, JSON.stringify(state)); }
   catch(e){ storageOK = false; toast("警告：本机存储不可用，数据仅保存在内存中，请及时导出备份！"); }
+  scheduleCloud();
 }
 function toast(msg){
   const t = document.getElementById("toast");
@@ -926,6 +927,78 @@ function wipe(){
   }
 }
 
+
+/* ---------------- 云端加密备份（GitHub 私有仓库，端到端加密） ---------------- */
+const CLOUD_KEY="ysgzt_cloud_v1";
+let cloud={repo:"",token:"",pass:"",auto:false,lastUp:"",lastMsg:""};
+function loadCloud(){ try{const r=localStorage.getItem(CLOUD_KEY); if(r) cloud=Object.assign(cloud,JSON.parse(r));}catch(e){} }
+function saveCloud(){ try{localStorage.setItem(CLOUD_KEY,JSON.stringify(cloud));}catch(e){} }
+function b64(bytes){let s="";const CH=0x8000;for(let i=0;i<bytes.length;i+=CH){s+=String.fromCharCode.apply(null,bytes.subarray(i,i+CH));}return btoa(s);}
+function unb64(str){const bin=atob(str);const u=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);return u;}
+async function deriveKey(pass,salt){const km=await crypto.subtle.importKey("raw",new TextEncoder().encode(pass),"PBKDF2",false,["deriveKey"]);
+ return crypto.subtle.deriveKey({name:"PBKDF2",salt:salt,iterations:150000,hash:"SHA-256"},km,{name:"AES-GCM",length:256},false,["encrypt","decrypt"]);}
+async function encState(pass){const salt=crypto.getRandomValues(new Uint8Array(16)),iv=crypto.getRandomValues(new Uint8Array(12));
+ const key=await deriveKey(pass,salt);
+ const ct=new Uint8Array(await crypto.subtle.encrypt({name:"AES-GCM",iv:iv},key,new TextEncoder().encode(JSON.stringify(state))));
+ const out=new Uint8Array(28+ct.length);out.set(salt,0);out.set(iv,16);out.set(ct,28);return b64(out);}
+async function decState(pass,b){const u=unb64(b);const key=await deriveKey(pass,u.slice(0,16));
+ const pt=await crypto.subtle.decrypt({name:"AES-GCM",iv:u.slice(16,28)},key,u.slice(28));
+ return JSON.parse(new TextDecoder().decode(pt));}
+function cloudPath(){return "backups/center-"+(state.settings.centerNo||"00")+".json.enc";}
+function cloudApiUrl(){return "https://api.github.com/repos/"+cloud.repo+"/contents/"+cloudPath();}
+function cloudHdr(){return {"Authorization":"Bearer "+cloud.token,"Accept":"application/vnd.github+json"};}
+let cloudTimer=null, cloudBusy=false;
+function scheduleCloud(){ if(!cloud.auto||!cloud.repo||!cloud.token||!cloud.pass) return;
+ clearTimeout(cloudTimer); cloudTimer=setTimeout(function(){cloudUpload(false);},15000);}
+async function cloudUpload(manual){
+ if(cloudBusy) return;
+ if(!cloud.repo||!cloud.token||!cloud.pass){ if(manual)alert("请先在设置中完整填写：数据仓库、访问令牌、加密口令");return;}
+ if(!/^\S+\/\S+$/.test(cloud.repo)){ if(manual)alert("仓库格式应为：用户名/仓库名");return;}
+ cloudBusy=true; setCloudMsg("上传中…");
+ try{
+   let sha=null;
+   const g=await fetch(cloudApiUrl(),{headers:cloudHdr()});
+   if(g.status===200){ sha=(await g.json()).sha; }
+   else if(g.status===401||g.status===403){ throw new Error("令牌无效或无权限("+g.status+")"); }
+   else if(g.status!==404){ throw new Error("检查云端文件失败("+g.status+")"); }
+   const content=await encState(cloud.pass);
+   const body={message:"encrypted auto-backup "+new Date().toLocaleString("zh-CN"),content:content};
+   if(sha) body.sha=sha;
+   const r=await fetch(cloudApiUrl(),{method:"PUT",headers:cloudHdr(),body:JSON.stringify(body)});
+   if(!r.ok) throw new Error("上传失败("+r.status+")");
+   cloud.lastUp=new Date().toLocaleString("zh-CN"); cloud.lastMsg="成功"; saveCloud();
+   setCloudMsg("最近上传："+cloud.lastUp+"（成功，已加密）"); if(manual)toast("云端加密备份成功");
+ }catch(e){
+   cloud.lastMsg="失败："+e.message; saveCloud();
+   setCloudMsg("上传失败："+e.message+"。数据仍安全保存在本机，将随下次保存自动重试。");
+   if(manual)alert("云端备份失败："+e.message);
+ }finally{ cloudBusy=false; }
+}
+async function cloudRestore(){
+ if(!cloud.repo||!cloud.token||!cloud.pass){alert("请先完整填写云端配置");return;}
+ if(!confirm("将用云端备份覆盖本机当前数据（本机现有 "+state.patients.length+" 名患者），确认？"))return;
+ try{
+   const g=await fetch(cloudApiUrl(),{headers:cloudHdr()});
+   if(!g.ok) throw new Error("下载失败("+g.status+")");
+   const j=await g.json();
+   const obj=await decState(cloud.pass, String(j.content||"").replace(/\n/g,""));
+   if(!obj.patients) throw new Error("备份内容异常");
+   state=obj; save(); toast("云端恢复成功："+state.patients.length+"名患者"); go("dash");
+ }catch(e){ alert("恢复失败："+(e.name==="OperationError"?"加密口令不正确":e.message)); }
+}
+function setCloudMsg(t){const el=document.getElementById("cloudmsg");if(el)el.textContent=t;}
+function saveCloudCfg(){
+ const g=function(id){return document.getElementById(id).value.trim();};
+ cloud.repo=g("c_repo"); cloud.token=g("c_token"); cloud.pass=g("c_pass");
+ cloud.auto=document.getElementById("c_auto").checked;
+ saveCloud(); toast("云端配置已保存（仅保存在本机浏览器）");
+}
+window.__cryptotest = async function(){
+ const b=await encState("测试口令123"); const o=await decState("测试口令123",b);
+ let bad=false; try{ await decState("错误口令",b); bad=true; }catch(e){}
+ return JSON.stringify(o)===JSON.stringify(state) && !bad;
+};
+
 /* ---------------- 设置 ---------------- */
 function renderSettings(){
   const s=state.settings;
@@ -939,6 +1012,22 @@ function renderSettings(){
     <div style="margin-top:10px;max-width:280px"><label class="f">群推送起始日期（第1期发送当周的周一）</label>
       <input type="date" id="s_push" value="${esc(s.pushStart)}"></div>
     <div class="row" style="margin-top:12px"><button class="btn" onclick="saveSettings()">保存设置</button></div>
+  </div>
+  <div class="card"><h2>云端加密备份（自动上传 GitHub 私有仓库）</h2>
+    <div class="note"><b>隐私保护机制：</b>①数据先在本机用加密口令加密（AES-256-GCM），云端只保存密文，无口令任何人（包括仓库管理员）都无法读取；②仓库必须为<b>私有库</b>；③访问令牌与加密口令只保存在本机浏览器，不写入网页代码，也不包含在JSON备份和CSV导出中；④上传文件名仅含中心号。<b>加密口令由项目组统一设定并保管——口令遗失，云端备份将永久无法解密。</b></div>
+    <div class="grid g3">
+      <div><label class="f">数据仓库（用户名/仓库名，须为私有库）</label><input type="text" id="c_repo" value="${esc(cloud.repo)}" placeholder="如 fsclyx/yaoshi-data"></div>
+      <div><label class="f">访问令牌（Fine-grained PAT，仅限该库Contents读写）</label><input type="password" id="c_token" value="${esc(cloud.token)}" placeholder="github_pat_…"></div>
+      <div><label class="f">加密口令（全项目统一，项目组下发）</label><input type="password" id="c_pass" value="${esc(cloud.pass)}"></div>
+    </div>
+    <div class="row" style="margin-top:8px">
+      <label class="ck"><input type="checkbox" id="c_auto" ${cloud.auto?"checked":""}>保存数据后自动加密上传（延时15秒合并）</label>
+      <span class="spacer"></span>
+      <button class="btn" onclick="saveCloudCfg()">保存配置</button>
+      <button class="btn sec" onclick="cloudUpload(true)">立即上传</button>
+      <button class="btn sec" onclick="cloudRestore()">从云端恢复</button>
+    </div>
+    <p class="muted" id="cloudmsg" style="margin-top:6px">${cloud.lastUp?("最近上传："+esc(cloud.lastUp)+"（"+esc(cloud.lastMsg)+"）"):"未配置时此功能完全关闭，数据仅存本机。"}</p>
   </div>
   <div class="card"><h2>AI 智能辅助（预留，待项目组批准后启用）</h2>
     <div class="disabledbox">
@@ -989,7 +1078,7 @@ window.__selftest = function(){
 };
 
 /* 启动 */
-load(); updateHeader(); renderDash();
+load(); loadCloud(); updateHeader(); renderDash();
 </script>
 </body>
 </html>
